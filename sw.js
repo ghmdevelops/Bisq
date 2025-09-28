@@ -32,7 +32,18 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+
+  // Nunca cachear as APIs (sempre buscar online)
+  if (url.hostname.includes("coingecko.com") || url.hostname.includes("binance.com")) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // Cache-first pros arquivos locais
   event.respondWith(
-    caches.match(event.request).then((resp) => resp || fetch(event.request))
+    caches.match(event.request).then((resp) => {
+      return resp || fetch(event.request);
+    })
   );
 });

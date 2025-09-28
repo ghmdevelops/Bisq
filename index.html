@@ -457,45 +457,42 @@
         }
 
         async function carregarCarteira() {
-            const ids = {
-                bitcoin: "btc-bitcoin",
-                ethereum: "eth-ethereum",
-                solana: "sol-solana",
-                monero: "xmr-monero",
-                cardano: "ada-cardano",
-                stellar: "xlm-stellar",
-                "matic-network": "matic-polygon",
-                vechain: "vet-vechain",
-                uniswap: "uni-uniswap",
-                aave: "aave-aave"
-            };
+            const ids = investimentos.map(c => c.id).join(',');
+            const res = await fetch(
+                `https://api.coingecko.com/api/v3/coins/markets?vs_currency=brl&ids=${ids}&per_page=20&page=1&sparkline=false&t=${Date.now()}`,
+                { cache: 'no-store' }
+            );
+            if (!res.ok) return console.error('API', res.status);
 
+            const data = await res.json();
             const lista = document.getElementById('listaCoins');
-            lista.innerHTML = '';
+            if (data && data.length > 0) {
+                lista.innerHTML = '';
+            }
+
             let total = 0, ganhoDia = 0, perdaDia = 0;
 
-            for (const inv of investimentos) {
-                const idPaprika = ids[inv.id];
-                const res = await fetch(`https://api.coinpaprika.com/v1/tickers/${idPaprika}`);
-                const coin = await res.json();
-
-                const price = coin.quotes.BRL.price;
-                const pct = coin.quotes.BRL.percent_change_24h;
+            data.forEach(coin => {
+                const inv = investimentos.find(x => x.id === coin.id);
+                inv.current_price = coin.current_price;
+                const pct = coin.price_change_percentage_24h;
                 const ganho = inv.investido * (pct / 100);
                 const atual = inv.investido + ganho;
                 total += atual;
                 ganho >= 0 ? ganhoDia += ganho : perdaDia += Math.abs(ganho);
+                const passou = Math.abs(pct) >= inv.threshold;
+                const badge = passou ? `<span class="coin-badge ${pct >= 0 ? 'badge-up' : 'badge-down'}"></span>` : '';
 
                 const el = document.createElement('div');
                 el.className = 'coin';
                 el.innerHTML = `
           <div class="coin-info">
             <div class="coin-img-wrapper">
-              <img src="${inv.icon}" alt="${inv.nome}">
+              <img src="${inv.icon}" alt="${inv.nome}">${badge}
             </div>
             <div>
               <div class="coin-nome">${inv.nome}</div>
-              <div class="coin-quant">${(inv.investido / price).toFixed(8)} ${coin.symbol}</div>
+              <div class="coin-quant">${(inv.investido / coin.current_price).toFixed(8)} ${coin.symbol.toUpperCase()}</div>
             </div>
           </div>
           <div class="coin-valores">
@@ -505,8 +502,49 @@
             </div>
           </div>`;
                 lista.appendChild(el);
+
+                el.querySelector('.valor-atual').addEventListener('click', e => {
+                    const span = e.currentTarget;
+                    const shown = span.textContent !== '••••••';
+                    span.textContent = shown ? '••••••' : span.getAttribute('data-original');
+                });
+
+                if (passou && Notification.permission === 'granted') {
+                    new Notification(`${inv.nome}: variação ${pct.toFixed(2)}%`, {
+                        body: `${inv.nome} ${pct >= 0 ? 'subiu' : 'caiu'} ${Math.abs(pct).toFixed(2)}% em 24h.`,
+                        icon: inv.icon
+                    });
+                }
+            });
+
+            lastTotal = formatBRL(total);
+            if (!saldoHidden) {
+                valorTotalEl.textContent = lastTotal || "R$ 0,00";
             }
+
+            const invTotal = investimentos.reduce((s, x) => s + x.investido, 0);
+            const rend = total - invTotal;
+            const rEl = document.querySelector('.rendimento');
+            rEl.textContent = `${rend >= 0 ? '↑ ' : '↓ '}${formatBRL(Math.abs(rend))}`;
+            rEl.classList.toggle('up', rend >= 0);
+            rEl.classList.toggle('down', rend < 0);
+
+            document.querySelector('.totais-dia .ganho').textContent = `Ganho: ${formatBRL(ganhoDia)}`;
+            document.querySelector('.totais-dia .perda').textContent = `Perda: ${formatBRL(perdaDia)}`;
+
+            sessionStorage.setItem("ultimaCarteira", JSON.stringify({
+                total: lastTotal,
+                investimentos: investimentos
+            }));
+
+
         }
+
+        window.addEventListener('load', () => {
+            carregarCarteiraStorage(); // carrega última carteira salva
+            carregarCarteira();        // pega dados da API
+            setInterval(carregarCarteira, 60000);
+        });
 
         document.getElementById('toggleTotais').addEventListener('click', () => {
             document.getElementById('painelTotais').classList.toggle('show');
