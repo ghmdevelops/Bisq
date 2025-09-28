@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Minha Carteira Crypto</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2a2a2a">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+    <style>
+        :root {
+            --neon-green: #0d5f2b;
+            --neon-glow: 0 0 8px var(--neon-green), 0 0 16px var(--neon-green);
+        }
+
+        /* --- SweetAlert2 customizações --- */
+        .swal2-popup {
+            background: #2a2a2a !important;
+            border: 2px solid transparent;
+            width: auto !important;
+            max-width: 90% !important;
+            padding: 1rem !important;
+        }
+
+        .swal2-title {
+            color: #fff !important;
+            text-shadow: var(--neon-glow) !important;
+            font-size: 1.25rem !important;
+        }
+
+        .swal2-html-container {
+            color: #ccc !important;
+            font-size: 1rem !important;
+        }
+
+        .swal2-input {
+            background: #333 !important;
+            color: #fff !important;
+            border: 1px solid var(--neon-green) !important;
+            width: 100% !important;
+            margin: .5rem 0 !important;
+        }
+
+        .swal2-confirm {
+            background-color: var(--neon-green) !important;
+            box-shadow: var(--neon-glow) !important;
+            padding: .6rem 1.2rem !important;
+            font-size: 1rem !important;
+        }
+
+        .swal2-cancel {
+            background-color: #555 !important;
+            padding: .6rem 1.2rem !important;
+            font-size: 1rem !important;
+        }
+
+        /* Remover glow/borda neon da imagem do logo */
+        .swal2-image {
+            box-shadow: none !important;
+            border: none !important;
+        }
+
+        @media (max-width: 400px) {
+            .swal2-title {
+                font-size: 1.1rem !important;
+            }
+
+            .swal2-html-container {
+                font-size: .9rem !important;
+            }
+
+            .swal2-confirm,
+            .swal2-cancel {
+                font-size: .9rem !important;
+                padding: .5rem 1rem !important;
+            }
+        }
+
+        /* --- Resto do seu CSS existente --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            background: #121212;
+            color: #e1e1e1;
+            font-family: "Segoe UI", sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh
+        }
+
+        .carteira {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 64px);
+            max-width: 460px;
+            width: 100%;
+            margin: 0 auto;
+            background: #1e1e1e;
+
+            border-radius: 16px;
+            overflow: hidden
+        }
+
+        .header {
+            padding: 1.5rem;
+            background: #2a2a2a;
+        }
+
+        .user-header {
+            display: flex;
+            flex-direction: column;
+            align-items: baseline;
+
+        }
+
+        .user-logo {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+        }
+
+        .user-name {
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            align-items: baseline;
+
+        }
+
+        .header h1 {
+            color: #fff;
+            font-size: 1.5rem;
+        }
+
+        .saldo-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        .saldo-total .valor {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+            user-select: none
+        }
+
+        .saldo-total .rendimento.up {
+            color: #4caf50
+        }
+
+        .saldo-total .rendimento.down {
+            color: #f44336
+        }
+
+        #btnInstall {
+            display: inline-block;
+            width: calc(50% - 1rem);
+            margin: .5rem .5rem 0 0;
+            padding: .8rem;
+            background: var(--neon-green);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: var(--neon-glow);
+            transition: box-shadow .2s
+        }
+
+        #btnInstall:hover {
+            box-shadow: 0 0 12px var(--neon-green), 0 0 24px var(--neon-green);
+            background: #008f35
+        }
+
+        .totais-toggle {
+            margin-top: 1rem;
+            padding: 0 1.5rem;
+            font-size: 1rem;
+            color: #aaa;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between
+        }
+
+        .totais-toggle .arrow {
+            transition: transform .2s
+        }
+
+        .totais-toggle.collapsed .arrow {
+            transform: rotate(-90deg)
+        }
+
+        .totais-dia {
+            display: none;
+            padding: 1rem 1.5rem;
+            background: #2a2a2a;
+            font-size: 1rem;
+            justify-content: space-between
+        }
+
+        .totais-dia.show {
+            display: flex
+        }
+
+        .totais-dia .ganho {
+            color: #4caf50
+        }
+
+        .totais-dia .perda {
+            color: #f44336
+        }
+
+        .lista-coins {
+            flex: 1;
+            overflow-y: auto;
+            padding: .5rem 0
+        }
+
+        .coin {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            margin: .5rem 1rem;
+            background: #1e1e1e;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            position: relative
+        }
+
+        .coin-info {
+            display: flex;
+            align-items: center
+        }
+
+        .coin-img-wrapper img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #333;
+            padding: 4px
+        }
+
+        .coin-nome {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff
+        }
+
+        .coin-quant {
+            font-size: .9rem;
+            color: #bbb
+        }
+
+        .coin-valores {
+            text-align: right;
+            display: flex;
+            align-items: center
+        }
+
+        .valor-atual {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+            margin-right: .5rem;
+            cursor: pointer;
+            user-select: none
+        }
+
+        .var24h.up {
+            color: #4caf50
+        }
+
+        .var24h.down {
+            color: #f44336
+        }
+
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 460px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 64px;
+            background: linear-gradient(135deg, #242424, #1f1f1f);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.6);
+            z-index: 100
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.4rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            padding: .5rem;
+            transition: color .2s
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: var(--neon-green)
+        }
+
+        .nav-item.active::after {
+            content: "";
+            position: absolute;
+            top: 6px;
+            width: 6px;
+            height: 6px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            box-shadow: var(--neon-glow)
+        }
+
+        .lista-coins::-webkit-scrollbar {
+            width: 8px
+        }
+
+        .lista-coins::-webkit-scrollbar-track {
+            background: #2a2a2a;
+            border-radius: 4px
+        }
+
+        .lista-coins::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+            border: 2px solid #2a2a2a
+        }
+
+        .lista-coins::-webkit-scrollbar-thumb:hover {
+            background: #777
+        }
+
+        .lista-coins {
+            scrollbar-width: thin;
+            scrollbar-color: #555 #2a2a2a
+        }
+    </style>
+</head>
+
+<body>
+    <div id="appContainer" style="display: none; flex-direction: column; min-height: 100vh;">
+        <div class="carteira">
+            <div class="header">
+                <div class="user-header">
+                    <img src="https://bisq.network/images/bisq-logo.svg" alt="Logo Bisq" class="user-logo" />
+                    <span class="user-name">Ge****e Ba***s</span>
+                </div>
+                <h1>Minha Carteira</h1>
+
+                <div class="saldo-total" id="toggleSaldoArea">
+                    <div>
+                        <div>Saldo total</div>
+                        <div class="rendimento up">↑ R$ 0,00</div>
+                    </div>
+                    <div class="valor-container">
+                        <div class="valor" id="valorTotal">R$ 0,00</div>
+                    </div>
+                </div>
+
+                <div style="display:flex; flex-wrap:wrap;">
+                    <button id="btnInstall">Instalar App</button>
+                </div>
+
+                <div class="totais-toggle collapsed" id="toggleTotais">
+                    <span>Totais do dia</span><span class="arrow">▶</span>
+                </div>
+                <div class="totais-dia" id="painelTotais">
+                    <div class="ganho">Ganho: R$ 0,00</div>
+                    <div class="perda">Perda: R$ 0,00</div>
+                </div>
+            </div>
+
+            <div class="lista-coins" id="listaCoins"></div>
+        </div>
+
+        <div class="nav-bar">
+            <button class="nav-item"><i class="bi bi-house-fill"></i></button>
+            <button class="nav-item"><i class="bi bi-wallet-fill"></i></button>
+            <button class="nav-item" id="btnTransfer"><i class="bi bi-arrow-up-right-circle"></i></button>
+            <button class="nav-item"><i class="bi bi-list"></i></button>
+        </div>
+    </div>
+
+    <script>
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(console.error);
+        if ('Notification' in window) Notification.requestPermission();
+
+        let lastTotal = '';
+        let saldoHidden = false;
+        const valorTotalEl = document.getElementById('valorTotal');
+
+        document.getElementById('toggleSaldoArea').addEventListener('click', () => {
+            saldoHidden = !saldoHidden;
+            valorTotalEl.textContent = saldoHidden ? '••••••' : lastTotal;
+        });
+
+        let deferredPrompt;
+        const btnInstall = document.getElementById('btnInstall');
+        btnInstall.style.display = 'none';
+        window.addEventListener('beforeinstallprompt', e => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (localStorage.getItem('appInstalled') !== 'true') {
+                btnInstall.style.display = 'inline-block';
+            }
+        });
+        btnInstall.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const choice = await deferredPrompt.userChoice;
+            if (choice.outcome === 'accepted') {
+                localStorage.setItem('appInstalled', 'true');
+                btnInstall.style.display = 'none';
+            }
+            deferredPrompt = null;
+        });
+
+        const investimentos = [
+            { id: 'bitcoin', nome: 'Bitcoin', icon: 'https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png', investido: 148000, threshold: 5 },
+            { id: 'ethereum', nome: 'Ethereum', icon: 'https://assets.coingecko.com/coins/images/279/thumb/ethereum.png', investido: 38000, threshold: 4 },
+            { id: 'solana', nome: 'Solana', icon: 'https://assets.coingecko.com/coins/images/4128/thumb/solana.png', investido: 20000, threshold: 6 },
+            { id: 'monero', nome: 'Monero', icon: 'https://assets.coingecko.com/coins/images/69/thumb/monero_logo.png', investido: 24000, threshold: 5 },
+            { id: 'cardano', nome: 'Cardano', icon: 'https://assets.coingecko.com/coins/images/975/thumb/cardano.png', investido: 50000, threshold: 3 },
+            { id: 'stellar', nome: 'Stellar', icon: 'https://assets.coingecko.com/coins/images/100/thumb/Stellar_symbol_black_RGB.png', investido: 3800, threshold: 4 },
+            { id: 'matic-network', nome: 'Polygon', icon: 'https://assets.coingecko.com/coins/images/4713/thumb/matic-token-icon.png', investido: 2100, threshold: 4 },
+            { id: 'vechain', nome: 'VeChain', icon: 'https://assets.coingecko.com/coins/images/1167/thumb/VeChain-Logo-768x725.png', investido: 80000, threshold: 5 },
+            { id: 'uniswap', nome: 'Uniswap', icon: 'https://assets.coingecko.com/coins/images/12504/thumb/uniswap-uni.png', investido: 55000, threshold: 5 },
+            { id: 'aave', nome: 'Aave', icon: 'https://assets.coingecko.com/coins/images/12645/thumb/AAVE.png', investido: 2900, threshold: 4 }
+        ];
+
+        function formatBRL(v) {
+            return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        async function carregarCarteira() {
+            const ids = {
+                bitcoin: "btc-bitcoin",
+                ethereum: "eth-ethereum",
+                solana: "sol-solana",
+                monero: "xmr-monero",
+                cardano: "ada-cardano",
+                stellar: "xlm-stellar",
+                "matic-network": "matic-polygon",
+                vechain: "vet-vechain",
+                uniswap: "uni-uniswap",
+                aave: "aave-aave"
+            };
+
+            const lista = document.getElementById('listaCoins');
+            lista.innerHTML = '';
+            let total = 0, ganhoDia = 0, perdaDia = 0;
+
+            for (const inv of investimentos) {
+                const idPaprika = ids[inv.id];
+                const res = await fetch(`https://api.coinpaprika.com/v1/tickers/${idPaprika}`);
+                const coin = await res.json();
+
+                const price = coin.quotes.BRL.price;
+                const pct = coin.quotes.BRL.percent_change_24h;
+                const ganho = inv.investido * (pct / 100);
+                const atual = inv.investido + ganho;
+                total += atual;
+                ganho >= 0 ? ganhoDia += ganho : perdaDia += Math.abs(ganho);
+
+                const el = document.createElement('div');
+                el.className = 'coin';
+                el.innerHTML = `
+          <div class="coin-info">
+            <div class="coin-img-wrapper">
+              <img src="${inv.icon}" alt="${inv.nome}">
+            </div>
+            <div>
+              <div class="coin-nome">${inv.nome}</div>
+              <div class="coin-quant">${(inv.investido / price).toFixed(8)} ${coin.symbol}</div>
+            </div>
+          </div>
+          <div class="coin-valores">
+            <div class="valor-atual" data-original="${formatBRL(atual)}">${formatBRL(atual)}</div>
+            <div class="var24h ${pct >= 0 ? 'up' : 'down'}">
+              ${pct >= 0 ? '↑' : '↓'} ${formatBRL(ganho)} (${pct.toFixed(2)}%)
+            </div>
+          </div>`;
+                lista.appendChild(el);
+            }
+        }
+
+        document.getElementById('toggleTotais').addEventListener('click', () => {
+            document.getElementById('painelTotais').classList.toggle('show');
+            document.getElementById('toggleTotais').classList.toggle('collapsed');
+        });
+
+        document.getElementById('btnTransfer').addEventListener('click', async () => {
+            const history = [
+                '1BoatSLRHtKNngkdXEeobR76b53LETtpyT',
+                '3FZbgi29cpjq2GjdwV8eyHuJJnkLtktZc5',
+                '1HB5XMLmzFVj8ALj6mfBsbifRoD4miY36v'
+            ];
+            const { value: address } = await Swal.fire({
+                imageUrl: 'https://bisq.network/images/bisq-logo.svg',
+                imageAlt: 'Logo Bisq',
+                imageWidth: 40,
+                title: 'Endereço de destino',
+                html: `<input id="swal-address" list="history" class="swal2-input" placeholder="Endereço ou selecione"><datalist id="history">${history.map(a => `<option value="${a}">`).join('')}</datalist>`,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Próximo',
+                cancelButtonText: 'Cancelar',
+                preConfirm: () => {
+                    const v = document.getElementById('swal-address').value;
+                    if (!v) throw 'Endereço obrigatório!';
+                    if (!/^([13][a-km-zA-HJ-NP-Z1-9]{25,34})$/.test(v)) throw 'Formato inválido!';
+                    return v;
+                },
+                didOpen: () => document.getElementById('swal-address').focus()
+            });
+            if (!address) return;
+
+            const btc = investimentos.find(c => c.id === 'bitcoin');
+            const { value: amount } = await Swal.fire({
+                imageUrl: 'https://bisq.network/images/bisq-logo.svg',
+                imageAlt: 'Logo Bisq',
+                imageWidth: 40,
+                title: 'Quantas moedas deseja transferir?',
+                html: `<input id="swal-input-amount" class="swal2-input" type="number" placeholder="0.01" min="0.00000001" step="0.00000001"><div id="swal-equivalent" style="color:#ccc;font-size:.9rem;margin-top:-.5rem;">Equivalente: R$ 0,00</div>`,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Transferir',
+                cancelButtonText: 'Cancelar',
+                preConfirm: () => {
+                    const v = parseFloat(document.getElementById('swal-input-amount').value);
+                    if (!v || isNaN(v) || v <= 0) throw 'Quantidade inválida';
+                    if (v * btc.current_price > btc.investido) throw 'Saldo insuficiente';
+                    return v;
+                },
+                didOpen: () => {
+                    const inp = document.getElementById('swal-input-amount'),
+                        eq = document.getElementById('swal-equivalent');
+                    inp.addEventListener('input', () => {
+                        const v = parseFloat(inp.value) || 0;
+                        eq.textContent = `Equivalente: ${formatBRL(v * btc.current_price)}`;
+                    });
+                    inp.focus();
+                }
+            });
+            if (!amount) return;
+
+            await Swal.fire({
+                imageUrl: 'https://bisq.network/images/bisq-logo.svg',
+                imageAlt: 'Logo Bisq',
+                imageWidth: 40,
+                title: 'Autenticação Ledger',
+                html: 'Aguardando confirmação no Ledger por <strong>30</strong> segundos.',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                timer: 30000,
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                    const b = Swal.getHtmlContainer().querySelector('strong');
+                    let t = 30;
+                    const iv = setInterval(() => b.textContent = --t, 1000);
+                    Swal.willClose(() => clearInterval(iv));
+                }
+            });
+
+            await new Promise(r => setTimeout(r, 50));
+            let erro = null;
+            try {
+                await Promise.race([
+                    navigator.credentials.get({
+                        publicKey: { challenge: new Uint8Array(32), timeout: 30000, userVerification: 'required' }
+                    }),
+                    new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 30000))
+                ]);
+            } catch (e) {
+                erro = e;
+            }
+            Swal.close();
+            if (erro) {
+                const isTimeout = erro.message === 'timeout';
+                return Swal.fire({
+                    imageUrl: 'https://bisq.network/images/bisq-logo.svg',
+                    imageAlt: 'Logo Bisq',
+                    imageWidth: 40,
+                    icon: 'error',
+                    title: 'Erro',
+                    text: isTimeout ? 'Tempo esgotado.' : 'Autenticação não realizada.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+
+            const valorBRL = amount * btc.current_price;
+            btc.investido = Math.max(0, btc.investido - valorBRL);
+            carregarCarteira();
+            Swal.fire({
+                imageUrl: 'https://bisq.network/images/bisq-logo.svg',
+                imageAlt: 'Logo Bisq',
+                imageWidth: 40,
+                icon: 'success',
+                title: 'Transferência concluída',
+                html: `<p><strong>Endereço:</strong> ${address}</p><p><strong>Quantidade:</strong> ${amount} BTC</p><p><strong>Valor:</strong> ${formatBRL(valorBRL)}</p>`
+            });
+        });
+
+        window.addEventListener('load', () => {
+            Swal.fire({
+                title: 'Validando dispositivo',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading(),
+                timer: 3000,
+                timerProgressBar: true
+            }).then(result => {
+                if (result.dismiss === Swal.DismissReason.timer) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Dispositivo autenticado',
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        Swal.close();
+                        document.getElementById('appContainer').style.display = 'flex';
+                        carregarCarteira();
+                        setInterval(() => carregarCarteira().catch(console.error), 60000);
+                    });
+                }
+            });
+        });
+
+
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                navItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+    </script>
+</body>
+
+</html>
