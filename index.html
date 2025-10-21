@@ -1,39 +1,221 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Minha Carteira Crypto</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2a2a2a">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
-<style>
-:root{--neon-green:#0d5f2b;--neon-glow:0 0 8px var(--neon-green),0 0 16px var(--neon-green)}
-.swal2-popup{background:#2a2a2a!important;border:2px solid transparent;width:auto!important;max-width:90%!important;padding:1rem!important}
-.swal2-title{color:#fff!important;text-shadow:var(--neon-glow)!important;font-size:1.25rem!important}
-.swal2-html-container{color:#ccc!important;font-size:1rem!important}
-.swal2-input{background:#333!important;color:#fff!important;border:1px solid var(--neon-green)!important;width:100%!important;margin:.5rem 0!important}
-.swal2-confirm{background-color:var(--neon-green)!important;box-shadow:var(--neon-glow)!important;padding:.6rem 1.2rem!important;font-size:1rem!important}
-.swal2-cancel{background-color:#555!important;padding:.6rem 1.2rem!important;font-size:1rem!important}
-.swal2-image{box-shadow:none!important;border:none!important}
-@media(max-width:400px){.swal2-title{font-size:1.1rem!important}.swal2-html-container{font-size:.9rem!important}.swal2-confirm,.swal2-cancel{font-size:.9rem!important;padding:.5rem 1rem!important}}
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#121212;color:#e1e1e1;font-family:"Segoe UI",sans-serif;display:flex;flex-direction:column;min-height:100vh}
-.carteira{display:flex;flex-direction:column;height:calc(100vh - 64px);max-width:460px;width:100%;margin:0 auto;background:#1e1e1e;border-radius:16px;overflow:hidden}
-.header{padding:1.5rem;background:#2a2a2a}
-.user-header{display:flex;flex-direction:column;align-items:baseline}
-.user-logo{width:90px;height:90px;object-fit:contain}
-.user-name{color:#fff;font-size:1rem;font-weight:600;align-items:baseline}
-.header h1{color:#fff;font-size:1.5rem}
-.saldo-total{display:flex;justify-content:space-between;align-items:flex-end;cursor:pointer;margin-top:1rem}
-.saldo-total .valor{font-size:2rem;font-weight:700;color:#fff;user-select:none}
-.saldo-total .rendimento.up{color:#4caf50}
-.saldo-total .rendimento.down{color:#f44336}
-#btnInstall{display:inline-block;width:calc(50% - 1rem);margin:.5rem .5rem 0 0;padding:.8rem;background:var(--neon-green);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;box-shadow:var(--neon-glow);transition:box-shadow .2s}
-#btnInstall:hover{box-shadow:0 0 12px var(--neon-green),0 0 24px var(--neon-green);background:#008f35}
-.totais-toggle{margin-top:1rem;padding:0 1.5rem;font-size:1rem;color:#aaa;cursor:pointer;display:flex;justify-content:space-between}
+  <meta charset="UTF-8">
+  <title>Minha Carteira Crypto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2a2a2a">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+  <style>
+    :root {
+      --neon-green: #0d5f2b;
+      --neon-glow: 0 0 8px var(--neon-green), 0 0 16px var(--neon-green);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #121212;
+      color: #e1e1e1;
+      font-family: "Segoe UI", sans-serif;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .carteira {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 64px);
+      max-width: 460px;
+      width: 100%;
+      margin: 0 auto;
+      background: #1e1e1e;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.6);
+    }
+
+    .header {
+      padding: 1.5rem;
+      background: #2a2a2a;
+    }
+
+    .user-header {
+      display: flex;
+      flex-direction: column;
+      align-items: baseline;
+    }
+
+    .user-logo {
+      width: 90px;
+      height: 90px;
+      object-fit: contain;
+    }
+
+    .user-name {
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .saldo-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+
+    .saldo-total .valor {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #fff;
+      user-select: none;
+    }
+
+    .saldo-total .rendimento.up { color: #4caf50; }
+    .saldo-total .rendimento.down { color: #f44336; }
+
+    .totais-toggle {
+      margin-top: 1rem;
+      padding: 0 1.5rem;
+      font-size: 1rem;
+      color: #aaa;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .crypto-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem 1.5rem;
+    }
+
+    .crypto-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #2a2a2a;
+      padding: 1rem;
+      border-radius: 12px;
+      margin-bottom: .8rem;
+      transition: background .2s;
+    }
+
+    .crypto-item:hover {
+      background: #333;
+    }
+
+    .crypto-item .info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .crypto-item .name {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .crypto-item .amount {
+      color: #aaa;
+      font-size: .9rem;
+    }
+
+    .crypto-item .value {
+      text-align: right;
+    }
+
+    .crypto-item .price {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .crypto-item .change {
+      font-size: .9rem;
+      color: #f44336;
+    }
+
+    #btnInstall {
+      display: inline-block;
+      width: calc(50% - 1rem);
+      margin: .5rem .5rem 0 0;
+      padding: .8rem;
+      background: var(--neon-green);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--neon-glow);
+      transition: box-shadow .2s;
+    }
+
+    #btnInstall:hover {
+      box-shadow: 0 0 12px var(--neon-green), 0 0 24px var(--neon-green);
+      background: #008f35;
+    }
+  </style>
+</head>
+<body>
+  <div class="carteira">
+    <div class="header">
+      <div class="user-header">
+        <h2>Ge****e Ba***s</h2>
+        <h1>Minha Carteira</h1>
+      </div>
+      <div class="saldo-total">
+        <div>
+          <div>Saldo total</div>
+          <div class="valor" id="saldoTotal">R$ 0,00</div>
+        </div>
+        <div class="rendimento down" id="variacaoDia">▼ 0,00%</div>
+      </div>
+    </div>
+
+    <div class="crypto-list" id="cryptoList">
+      <!-- Os dados são inseridos via JS -->
+    </div>
+  </div>
+
+  <script>
+    const criptos = [
+      { nome: "Bitcoin", sigla: "BTC", quantidade: 0.62850882, valor: 366483.22, variacao: -0.95 },
+      { nome: "Ethereum", sigla: "ETH", quantidade: 1.80668473, valor: 37373.94, variacao: -1.65 },
+      { nome: "Solana", sigla: "SOL", quantidade: 19.67090575, valor: 19918.83, variacao: -0.41 },
+      { nome: "Cardano", sigla: "ADA", quantidade: 14285.71428571, valor: 49103.39, variacao: -1.79 }
+    ];
+
+    const lista = document.getElementById("cryptoList");
+    const saldoTotalEl = document.getElementById("saldoTotal");
+
+    let total = 0;
+    criptos.forEach(c => {
+      total += c.valor;
+
+      const item = document.createElement("div");
+      item.classList.add("crypto-item");
+      item.innerHTML = `
+        <div class="info">
+          <div class="name">${c.nome}</div>
+          <div class="amount">${c.quantidade.toFixed(8)} ${c.sigla}</div>
+        </div>
+        <div class="value">
+          <div class="price">R$ ${c.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
+          <div class="change">R$ ${(c.valor * c.variacao / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} (${c.variacao}%)</div>
+        </div>
+      `;
+      lista.appendChild(item);
+    });
+
+    saldoTotalEl.textContent = "R$ " + total.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+  </script>
+</body>
+</html>
 .totais-toggle .arrow{transition:transform .2s}
 .totais-toggle.collapsed .arrow{transform:rotate(-90deg)}
 .totais-dia{display:none;padding:1rem 1.5rem;background:#2a2a2a;font-size:1rem;justify-content:space-between}
