@@ -46,6 +46,35 @@
             font-size: 1rem !important;
         }
 
+        .swal2-input::-webkit-scrollbar {
+            display: none;
+            /* Remove a barra de rolagem */
+            width: 0 !important;
+            /* Garante que não ocupa espaço horizontal */
+            height: 0 !important;
+            /* Garante que não ocupa espaço vertical */
+        }
+
+        .swal2-input::-webkit-scrollbar {
+            display: none;
+            /* Remove a barra de rolagem */
+            width: 0 !important;
+            /* Garante que não ocupa espaço horizontal */
+            height: 0 !important;
+            /* Garante que não ocupa espaço vertical */
+        }
+
+        #swal-input-amount::-webkit-scrollbar {
+            display: none;
+            width: 0 !important;
+            height: 0 !important;
+        }
+
+        html,
+        body {
+            overflow-x: hidden;
+        }
+
         /* --- Resto do seu CSS atualizado --- */
         * {
             margin: 0;
@@ -93,8 +122,8 @@
         }
 
         .user-logo {
-            width: 120px;
-            height: 120px;
+            width: 150px;
+            height: 150px;
             object-fit: contain;
             border-radius: 50%;
             padding: 5px;
@@ -721,83 +750,124 @@
         });
 
         document.getElementById('btnTransfer').addEventListener('click', async () => {
+
             const history = [
                 '1BoatSLRHtKNngkdXEeobR76b53LETtpyT',
                 '3FZbgi29cpjq2GjdwV8eyHuJJnkLtktZc5',
                 '1HB5XMLmzFVj8ALj6mfBsbifRoD4miY36v'
             ];
+
+            // ----------- PASSO 1: Endereço ----------- //
             const { value: address } = await Swal.fire({
                 imageUrl: 'https://bisq.network/images/bisq-logo.svg',
                 imageAlt: 'Logo Bisq',
-                imageWidth: 40,
-                title: 'Endereço de destino',
-                html: `<input id="swal-address" list="history" class="swal2-input" placeholder="Endereço ou selecione"><datalist id="history">${history.map(a => `<option value="${a}">`).join('')}</datalist>`,
-                focusConfirm: false,
+                imageWidth: 50,
+                title: '<span style="font-size:1.1rem;font-weight:600;">Endereço de destino</span>',
+                background: '#1b1b1b',
+                color: '#fff',
+                html: `
+            <input id="swal-address" list="history" class="swal2-input"
+                placeholder="Ex: 1BoatSL..." autocomplete="off"
+                style="border-radius:10px;background:#111;border:1px solid #333;color:#fff;
+                       overflow:hidden;scrollbar-width:none;-ms-overflow-style:none; width:70%;height:50px;">
+            
+            <datalist id="history">
+                ${history.map(a => `<option value="${a}">`).join('')}
+            </datalist>
+
+            <div id="preview" style="font-size:.85rem;margin-top:5px;color:#8ae2fc;"></div>
+        `,
                 showCancelButton: true,
-                confirmButtonText: 'Próximo',
+                confirmButtonText: 'Próximo ➜',
                 cancelButtonText: 'Cancelar',
                 preConfirm: () => {
                     const v = document.getElementById('swal-address').value;
-                    if (!v) throw 'Endereço obrigatório!';
+                    if (!v) throw 'Informe um endereço.';
                     if (!/^([13][a-km-zA-HJ-NP-Z1-9]{25,34})$/.test(v)) throw 'Formato inválido!';
                     return v;
                 },
-                didOpen: () => document.getElementById('swal-address').focus()
+                didOpen: () => {
+                    const inp = document.getElementById('swal-address');
+                    const prev = document.getElementById('preview');
+                    inp.addEventListener('input', () => {
+                        prev.textContent = inp.value
+                            ? `→ Enviando para ${inp.value.slice(0, 12)}...`
+                            : '';
+                    });
+                    inp.focus();
+
+                    // Esconde scrollbar no mobile (Webkit)
+                    inp.style.overflow = 'hidden';
+                }
             });
             if (!address) return;
 
+            // ----------- PASSO 2: Quantidade ----------- //
             const btc = investimentos.find(c => c.id === 'bitcoin');
             const { value: amount } = await Swal.fire({
-                imageUrl: 'https://bisq.network/images/bisq-logo.svg',
-                imageAlt: 'Logo Bisq',
-                imageWidth: 40,
-                title: 'Quantas moedas deseja transferir?',
-                html: `<input id="swal-input-amount" class="swal2-input" type="number" placeholder="0.01" min="0.00000001" step="0.00000001"><div id="swal-equivalent" style="color:#ccc;font-size:.9rem;margin-top:-.5rem;">Equivalente: R$ 0,00</div>`,
-                focusConfirm: false,
+                title: 'Quantidade (BTC)',
+                background: '#1b1b1b',
+                color: '#fff',
+                html: `
+            <input id="swal-input-amount" class="swal2-input" type="number"
+                placeholder="0.01" min="0.00000001" step="0.00000001"
+                style="border-radius:10px;background:#111;border:1px solid #333;color:#fff;
+                       overflow:hidden;scrollbar-width:none;-ms-overflow-style:none;  width:70%;height:50px;">
+            <div id="swal-equivalent"
+                style="color:#8ae2fc;font-size:.9rem;margin-top:5px;">Equivalente: R$ 0,00</div>
+        `,
                 showCancelButton: true,
                 confirmButtonText: 'Transferir',
-                cancelButtonText: 'Cancelar',
+                cancelButtonText: 'Voltar',
                 preConfirm: () => {
                     const v = parseFloat(document.getElementById('swal-input-amount').value);
-                    if (!v || isNaN(v) || v <= 0) throw 'Quantidade inválida';
-                    // Altera a checagem de saldo para usar o novo cálculo (quantidade * preço atual)
-                    if (v > btc.quantidade) throw 'Saldo insuficiente';
+                    if (!v || isNaN(v) || v <= 0) throw 'Quantidade inválida.';
+                    if (v > btc.quantidade) throw 'Saldo insuficiente!';
                     return v;
                 },
                 didOpen: () => {
                     const inp = document.getElementById('swal-input-amount'),
                         eq = document.getElementById('swal-equivalent');
+
                     inp.addEventListener('input', () => {
                         const v = parseFloat(inp.value) || 0;
-                        // Usa btc.current_price, que é atualizado por carregarCarteira()
-                        eq.textContent = `Equivalente: ${formatBRL(v * (btc.current_price || btc.investido))}`;
+                        eq.textContent = `Equivalente: ${formatBRL(v * btc.current_price)}`;
                     });
+
                     inp.focus();
+
+                    // Remove scroll do input
+                    inp.style.overflow = 'hidden';
+
+                    // Remove scroll do container do SweetAlert
+                    const container = Swal.getPopup();
+                    container.style.overflow = 'hidden';
+                    container.style.maxHeight = '100%';
                 }
             });
             if (!amount) return;
 
+            // ----------- PASSO 3: Autenticação Ledger ----------- //
             await Swal.fire({
-                imageUrl: 'https://bisq.network/images/bisq-logo.svg',
-                imageAlt: 'Logo Bisq',
-                imageWidth: 40,
-                title: 'Autenticação Ledger',
-                html: 'Aguardando confirmação no Ledger por <strong>30</strong> segundos.',
-                allowOutsideClick: false,
-                showConfirmButton: false,
+                title: 'Autenticando Ledger...',
+                html: 'Confirme em até <strong id="sec">30</strong> segundos.',
+                background: '#1b1b1b',
+                color: '#fff',
                 timer: 30000,
                 timerProgressBar: true,
+                allowOutsideClick: false,
                 didOpen: () => {
                     Swal.showLoading();
-                    const b = Swal.getHtmlContainer().querySelector('strong');
                     let t = 30;
-                    const iv = setInterval(() => b.textContent = --t, 1000);
+                    const s = Swal.getHtmlContainer().querySelector('#sec');
+                    const iv = setInterval(() => { s.textContent = --t; }, 1000);
                     Swal.willClose(() => clearInterval(iv));
                 }
             });
 
             await new Promise(r => setTimeout(r, 50));
             let erro = null;
+
             try {
                 await Promise.race([
                     navigator.credentials.get({
@@ -808,14 +878,13 @@
             } catch (e) {
                 erro = e;
             }
-            Swal.close();
+
             if (erro) {
                 const isTimeout = erro.message === 'timeout';
                 return Swal.fire({
-                    imageUrl: 'https://bisq.network/images/bisq-logo.svg',
-                    imageAlt: 'Logo Bisq',
-                    imageWidth: 40,
                     icon: 'error',
+                    background: '#1b1b1b',
+                    color: '#fff',
                     title: 'Erro',
                     text: isTimeout ? 'Tempo esgotado.' : 'Autenticação não realizada.',
                     timer: 2000,
@@ -823,19 +892,35 @@
                 });
             }
 
-            // Atualiza o saldo localmente após a transferência simulada
+            // ----------- PASSO 4: Atualiza saldo ----------- //
             const valorBRL = amount * btc.current_price;
             btc.quantidade = Math.max(0, btc.quantidade - amount);
             carregarCarteira();
+
+            // ----------- PASSO 5: Resumo final ----------- //
             Swal.fire({
-                imageUrl: 'https://bisq.network/images/bisq-logo.svg',
-                imageAlt: 'Logo Bisq',
-                imageWidth: 40,
+                title: 'Transferência concluída!',
                 icon: 'success',
-                title: 'Transferência concluída',
-                html: `<p><strong>Endereço:</strong> ${address}</p><p><strong>Quantidade:</strong> ${amount} BTC</p><p><strong>Valor:</strong> ${formatBRL(valorBRL)}</p>`
+                background: '#1b1b1b',
+                color: '#fff',
+                html: `
+            <div style="text-align:left;">
+                <div style="margin-bottom:8px;">
+                    <strong>Endereço:</strong><br>
+                    <span style="opacity:.8">${address}</span>
+                </div>
+                <div style="margin-bottom:8px;">
+                    <strong>Quantidade:</strong> ${amount} BTC
+                </div>
+                <div>
+                    <strong>Valor:</strong> ${formatBRL(valorBRL)}
+                </div>
+            </div>
+        `,
+                confirmButtonText: 'Fechar',
             });
         });
+
 
         // === LÓGICA DE INICIALIZAÇÃO CORRIGIDA ===
 
@@ -853,17 +938,40 @@
 
         window.addEventListener('load', () => {
 
+            // --- PASSO 1: Validando/Conectando Dispositivo ---
             Swal.fire({
-                title: 'Validando dispositivo',
+                // Título e texto mais informativos
+                title: '🔒 Validando Acesso e Dispositivo',
+                html: 'Conectando a sua Wallet.',
+
+                // Design Simples (Dark Mode)
+                background: '#1b1b1b', // Fundo escuro
+                color: '#ffffff',     // Cor do texto
+
+                // Configurações do Modal
                 allowOutsideClick: false,
                 didOpen: () => Swal.showLoading(),
                 timer: 3000,
                 timerProgressBar: true
             }).then(result => {
                 if (result.dismiss === Swal.DismissReason.timer) {
+
+                    // --- PASSO 2: Dispositivo Autenticado (Sucesso) ---
                     Swal.fire({
+                        // Ícone nativo 'success' do SweetAlert2
                         icon: 'success',
-                        title: 'Dispositivo autenticado',
+
+                        // Cor do ícone (simulando neon ou destaque)
+                        iconColor: '#00ff00',
+
+                        // Texto de Sucesso
+                        title: ' Dispositivo Autenticado',
+
+                        // Design Simples (Dark Mode)
+                        background: '#1b1b1b',
+                        color: '#ffffff',
+
+                        // Configurações Finais
                         showConfirmButton: false,
                         timer: 1500
                     }).then(() => {
@@ -884,6 +992,7 @@
                 item.classList.add('active');
             });
         });
+        navItems[1].classList.add('active');
     </script>
 </body>
 
