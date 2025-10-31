@@ -12,36 +12,31 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
     <style>
         :root {
-            --neon-green: #0d5f2b;
-            --neon-glow: 0 0 8px var(--neon-green), 0 0 16px var(--neon-green);
+            --neon-green: #00e07f;
+            /* Tom de verde mais vibrante (Neon) */
+            --neon-blue: #00bfff;
+            /* Adicionando um azul complementar sutil */
+            --neon-glow: 0 0 10px rgba(0, 224, 127, 0.4), 0 0 20px rgba(0, 224, 127, 0.2);
+            --dark-bg: #101010;
+            --card-bg: #1c1c1c;
+            --header-bg: #1a1a1a;
         }
 
-        /* --- SweetAlert2 customizações --- */
+        /* --- SweetAlert2 customizações (mantidas) --- */
         .swal2-popup {
-            background: #2a2a2a !important;
+            background: var(--card-bg) !important;
             border: 2px solid transparent;
             width: auto !important;
             max-width: 90% !important;
             padding: 1rem !important;
+            border-radius: 12px !important;
+            /* Arredondamento */
         }
 
         .swal2-title {
             color: #fff !important;
             text-shadow: var(--neon-glow) !important;
             font-size: 1.25rem !important;
-        }
-
-        .swal2-html-container {
-            color: #ccc !important;
-            font-size: 1rem !important;
-        }
-
-        .swal2-input {
-            background: #333 !important;
-            color: #fff !important;
-            border: 1px solid var(--neon-green) !important;
-            width: 100% !important;
-            margin: .5rem 0 !important;
         }
 
         .swal2-confirm {
@@ -51,35 +46,7 @@
             font-size: 1rem !important;
         }
 
-        .swal2-cancel {
-            background-color: #555 !important;
-            padding: .6rem 1.2rem !important;
-            font-size: 1rem !important;
-        }
-
-        /* Remover glow/borda neon da imagem do logo */
-        .swal2-image {
-            box-shadow: none !important;
-            border: none !important;
-        }
-
-        @media (max-width: 400px) {
-            .swal2-title {
-                font-size: 1.1rem !important;
-            }
-
-            .swal2-html-container {
-                font-size: .9rem !important;
-            }
-
-            .swal2-confirm,
-            .swal2-cancel {
-                font-size: .9rem !important;
-                padding: .5rem 1rem !important;
-            }
-        }
-
-        /* --- Resto do seu CSS existente --- */
+        /* --- Resto do seu CSS atualizado --- */
         * {
             margin: 0;
             padding: 0;
@@ -87,7 +54,7 @@
         }
 
         body {
-            background: #121212;
+            background: var(--dark-bg);
             color: #e1e1e1;
             font-family: "Segoe UI", sans-serif;
             display: flex;
@@ -102,41 +69,51 @@
             max-width: 460px;
             width: 100%;
             margin: 0 auto;
-            background: #1e1e1e;
-
+            background: var(--dark-bg);
             border-radius: 16px;
-            overflow: hidden
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            /* Sombra sutil na tela toda */
         }
 
         .header {
             padding: 1.5rem;
-            background: #2a2a2a;
+            background: var(--header-bg);
+            /* Novo: Borda inferior arredondada para melhor transição */
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            margin-bottom: 10px;
         }
 
         .user-header {
             display: flex;
-            flex-direction: column;
-            align-items: baseline;
-
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
         }
 
         .user-logo {
-            width: 90px;
-            height: 90px;
+            width: 120px;
+            height: 120px;
             object-fit: contain;
+            border-radius: 50%;
+            padding: 5px;
+            /* Fundo mais escuro para o logo */
         }
 
         .user-name {
             color: #fff;
             font-size: 1rem;
             font-weight: 600;
-            align-items: baseline;
-
+            /* Alinhamento ajustado para ficar mais limpo */
         }
 
         .header h1 {
             color: #fff;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
+            /* Título um pouco menor */
+            font-weight: 400;
+            margin-top: -0.5rem;
         }
 
         .saldo-total {
@@ -145,68 +122,102 @@
             align-items: flex-end;
             cursor: pointer;
             margin-top: 1rem;
+            padding: 10px 0;
         }
 
         .saldo-total .valor {
-            font-size: 2rem;
-            font-weight: 700;
+            font-size: 2.5rem;
+            /* Valor maior */
+            font-weight: 800;
             color: #fff;
-            user-select: none
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            /* Sombra de texto sutil */
+            user-select: none;
+            line-height: 1;
+        }
+
+        .saldo-total div:first-child div:first-child {
+            font-size: 0.9rem;
+            color: #aaa;
+            font-weight: 600;
+            /* Mais destaque para 'Saldo total' */
+        }
+
+        .saldo-total .rendimento {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 5px;
         }
 
         .saldo-total .rendimento.up {
-            color: #4caf50
+            color: var(--neon-green);
+            color: transparent;
         }
 
         .saldo-total .rendimento.down {
-            color: #f44336
+            color: #ff4545;
+            color: transparent;
+            /* Vermelho mais forte */
         }
 
         #btnInstall {
             display: inline-block;
-            width: calc(50% - 1rem);
-            margin: .5rem .5rem 0 0;
+            width: 100%;
+            /* Botão em largura total */
+            margin: 1rem 0 0 0;
             padding: .8rem;
             background: var(--neon-green);
-            color: #fff;
+            color: var(--dark-bg);
+            /* Cor de texto escura no neon */
             border: none;
             border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
+            font-size: 1.1rem;
+            font-weight: 700;
             cursor: pointer;
             box-shadow: var(--neon-glow);
-            transition: box-shadow .2s
+            transition: all .2s;
         }
 
         #btnInstall:hover {
-            box-shadow: 0 0 12px var(--neon-green), 0 0 24px var(--neon-green);
-            background: #008f35
+            box-shadow: 0 0 15px var(--neon-green), 0 0 30px rgba(0, 224, 127, 0.4);
+            background: #00ff8c;
         }
 
         .totais-toggle {
-            margin-top: 1rem;
-            padding: 0 1.5rem;
+            margin-top: 1.5rem;
+            padding: 0;
             font-size: 1rem;
             color: #aaa;
             cursor: pointer;
             display: flex;
-            justify-content: space-between
+            justify-content: space-between;
+            font-weight: 600;
         }
 
         .totais-toggle .arrow {
-            transition: transform .2s
+            transition: transform .2s;
+            font-size: 0.8rem;
         }
 
         .totais-toggle.collapsed .arrow {
-            transform: rotate(-90deg)
+            transform: rotate(90deg);
+            /* Seta para a direita quando expandido */
         }
+
+        .totais-toggle:not(.collapsed) .arrow {
+            transform: rotate(-90deg);
+            /* Seta para baixo quando recolhido */
+        }
+
 
         .totais-dia {
             display: none;
-            padding: 1rem 1.5rem;
-            background: #2a2a2a;
-            font-size: 1rem;
-            justify-content: space-between
+            padding: 1rem 0;
+            background: transparent;
+            font-size: 0.9rem;
+            justify-content: space-between;
+            border-top: 1px solid #333;
+            margin-top: 0.5rem;
         }
 
         .totais-dia.show {
@@ -214,29 +225,39 @@
         }
 
         .totais-dia .ganho {
-            color: #4caf50
+            color: var(--neon-green);
         }
 
         .totais-dia .perda {
-            color: #f44336
+            color: #ff4545;
         }
 
         .lista-coins {
             flex: 1;
             overflow-y: auto;
-            padding: .5rem 0
+            padding: 10px 10px;
+            /* Reduzido o padding da lista */
         }
 
         .coin {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 1.5rem;
-            margin: .5rem 1rem;
-            background: #1e1e1e;
-            border: 1px solid transparent;
-            border-radius: 8px;
-            position: relative
+            padding: 1rem 1.2rem;
+            margin: 0.5rem 0;
+            background: var(--card-bg);
+            border: 1px solid #333;
+            /* Borda mais suave */
+            border-radius: 12px;
+            position: relative;
+            transition: all .2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            /* Sombra para efeito de cartão */
+        }
+
+        .coin:hover {
+            background: #242424;
+            border-color: var(--neon-green);
         }
 
         .coin-info {
@@ -244,46 +265,82 @@
             align-items: center
         }
 
+        .coin-img-wrapper {
+            position: relative;
+            margin-right: 12px;
+        }
+
         .coin-img-wrapper img {
             width: 40px;
             height: 40px;
             border-radius: 50%;
             background: #333;
-            padding: 4px
+            padding: 4px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            /* Sombra na imagem */
         }
+
+        /* Novo: Badge para alertar grandes variações */
+        .coin-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 2px solid var(--card-bg);
+            z-index: 5;
+        }
+
+        .coin-badge.badge-up {
+            background: var(--neon-green);
+            box-shadow: 0 0 5px var(--neon-green);
+        }
+
+        .coin-badge.badge-down {
+            background: #ff4545;
+            box-shadow: 0 0 5px #ff4545;
+        }
+
+        /* Fim do Badge */
 
         .coin-nome {
             font-size: 1.1rem;
-            font-weight: 600;
+            font-weight: 700;
             color: #fff
         }
 
         .coin-quant {
-            font-size: .9rem;
-            color: #bbb
+            font-size: .85rem;
+            color: #999
         }
 
         .coin-valores {
             text-align: right;
             display: flex;
-            align-items: center
+            flex-direction: column;
+            align-items: flex-end;
         }
 
         .valor-atual {
             font-size: 1.1rem;
-            font-weight: 600;
+            font-weight: 700;
             color: #fff;
-            margin-right: .5rem;
             cursor: pointer;
             user-select: none
         }
 
+        .var24h {
+            font-size: 0.9rem;
+            margin-top: 3px;
+        }
+
         .var24h.up {
-            color: #4caf50
+            color: var(--neon-green);
         }
 
         .var24h.down {
-            color: #f44336
+            color: #ff4545;
         }
 
         .nav-bar {
@@ -294,21 +351,26 @@
             left: 50%;
             transform: translateX(-50%);
             height: 64px;
-            background: linear-gradient(135deg, #242424, #1f1f1f);
+            /* NOVO: Glassmorphism/Efeito Vidro */
+            background: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            /* FIM NOVO */
             display: flex;
             justify-content: space-around;
             align-items: center;
             border-top-left-radius: 16px;
             border-top-right-radius: 16px;
-            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.8);
             z-index: 100
         }
 
         .nav-item {
             background: none;
             border: none;
-            color: #888;
-            font-size: 1.4rem;
+            color: #555;
+            /* Cor base mais discreta */
+            font-size: 1.5rem;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -316,47 +378,52 @@
             cursor: pointer;
             position: relative;
             padding: .5rem;
-            transition: color .2s
+            transition: color .3s, transform .2s;
+        }
+
+        .nav-item:hover {
+            transform: translateY(-2px);
         }
 
         .nav-item:hover,
         .nav-item.active {
-            color: var(--neon-green)
+            color: var(--neon-green);
+            text-shadow: 0 0 5px rgba(0, 224, 127, 0.5);
+            /* Glow no ícone ativo/hover */
         }
 
         .nav-item.active::after {
             content: "";
             position: absolute;
-            top: 6px;
-            width: 6px;
-            height: 6px;
+            bottom: 0;
+            width: 30px;
+            /* Linha de indicação ativa */
+            height: 3px;
             background: var(--neon-green);
-            border-radius: 50%;
-            box-shadow: var(--neon-glow)
+            border-radius: 2px;
+            box-shadow: var(--neon-glow);
+            top: unset;
+            /* Remove a bolinha, usa a linha */
         }
 
+        /* Scrollbar (mantido) */
         .lista-coins::-webkit-scrollbar {
-            width: 8px
+            width: 6px
         }
 
         .lista-coins::-webkit-scrollbar-track {
-            background: #2a2a2a;
-            border-radius: 4px
+            background: #101010;
         }
 
         .lista-coins::-webkit-scrollbar-thumb {
-            background: #555;
-            border-radius: 4px;
-            border: 2px solid #2a2a2a
-        }
-
-        .lista-coins::-webkit-scrollbar-thumb:hover {
-            background: #777
+            background: #444;
+            border-radius: 3px;
+            border: 1px solid #101010;
         }
 
         .lista-coins {
             scrollbar-width: thin;
-            scrollbar-color: #555 #2a2a2a
+            scrollbar-color: #444 #101010;
         }
     </style>
 </head>
@@ -373,10 +440,10 @@
 
                 <div class="saldo-total" id="toggleSaldoArea">
                     <div>
-                        <div>Saldo total</div>
-                        <div class="rendimento up">↑ R$ 0,00</div>
+                        <div style="font-size: 20px;">Saldo total</div>
                     </div>
                     <div class="valor-container">
+                        <div class="rendimento up">↑ R$ 0,00</div>
                         <div class="valor" id="valorTotal">R$ 0,00</div>
                     </div>
                 </div>
@@ -418,6 +485,109 @@
             valorTotalEl.textContent = saldoHidden ? '••••••' : lastTotal;
         });
 
+        function formatBRL(v) {
+            return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        const investimentos = [
+            { id: 'bitcoin', nome: 'Bitcoin', symbol: 'btc', icon: 'https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png', investido: 448000, threshold: 5, quantidade: 0.76304414 }, // Adicionado quantidade para simulação
+            { id: 'ethereum', nome: 'Ethereum', symbol: 'eth', icon: 'https://assets.coingecko.com/coins/images/279/thumb/ethereum.png', investido: 38000, threshold: 4, quantidade: 1.85013876 }, // Adicionado quantidade
+            { id: 'solana', nome: 'Solana', symbol: 'sol', icon: 'https://assets.coingecko.com/coins/images/4128/thumb/solana.png', investido: 20000, threshold: 6, quantidade: 20.11647439 }, // Adicionado quantidade
+            { id: 'cardano', nome: 'Cardano', symbol: 'ada', icon: 'https://assets.coingecko.com/coins/images/975/thumb/cardano.png', investido: 2000, threshold: 3, quantidade: 15423.9997542 }, // Adicionado quantidade
+            { id: 'stellar', nome: 'Stellar', symbol: 'xlm', icon: 'https://assets.coingecko.com/coins/images/100/thumb/Stellar_symbol_black_RGB.png', investido: 3800, threshold: 4, quantidade: 2360.24844720 }, // Adicionado quantidade
+            { id: 'monero', nome: 'Monero', symbol: 'xmr', icon: 'https://assets.coingecko.com/coins/images/69/thumb/monero_logo.png', investido: 24000, threshold: 5, quantidade: 13.82584050 }, // Adicionado quantidade
+            { id: 'uniswap', nome: 'Uniswap', symbol: 'uni', icon: 'https://assets.coingecko.com/coins/images/12504/thumb/uniswap-uni.png', investido: 5500, threshold: 5, quantidade: 1809.80585719 }, // Adicionado quantidade
+            { id: 'aave', nome: 'Aave', symbol: 'aave', icon: 'https://assets.coingecko.com/coins/images/12645/thumb/AAVE.png', investido: 2900, threshold: 4, quantidade: 2.52784993 }, // Adicionado quantidade
+            { id: 'matic-network', nome: 'Polygon', symbol: 'matic', icon: 'https://assets.coingecko.com/coins/images/4713/thumb/matic-token-icon.png', investido: 2100, threshold: 4, quantidade: 2000 },
+            { id: 'vechain', nome: 'VeChain', symbol: 'vet', icon: 'https://assets.coingecko.com/coins/images/1167/thumb/VeChain-Logo-768x725.png', investido: 8000, threshold: 5, quantidade: 200000 }
+        ];
+
+
+        function carregarCarteiraStorage() {
+            const data = sessionStorage.getItem("ultimaCarteira");
+            if (!data) return false;
+
+            const saved = JSON.parse(data);
+
+            lastTotal = saved.total;
+            valorTotalEl.textContent = saldoHidden ? '••••••' : lastTotal;
+
+            const lista = document.getElementById('listaCoins');
+            lista.innerHTML = '';
+            saved.investimentos.forEach(inv => {
+                const el = document.createElement('div');
+                el.className = 'coin';
+                el.innerHTML = `
+          <div class="coin-info">
+            <div class="coin-img-wrapper">
+              <img src="${inv.icon}" alt="${inv.nome}">
+            </div>
+            <div>
+              <div class="coin-nome">${inv.nome}</div>
+              <div class="coin-quant">${inv.quantidade} ${inv.symbol.toUpperCase()}</div>
+            </div>
+          </div>
+          <div class="coin-valores">
+            <div class="valor-atual" data-original="${inv.valorAtual}">${inv.valorAtual}</div>
+            <div class="var24h ${inv.pct >= 0 ? 'up' : 'down'}">
+              ${inv.pct >= 0 ? '↑' : '↓'} ${inv.variacaoBRL} (${inv.pct.toFixed(2)}%)
+            </div>
+          </div>`;
+                lista.appendChild(el);
+
+                el.querySelector('.valor-atual').addEventListener('click', e => {
+                    const span = e.currentTarget;
+                    const shown = span.textContent !== '••••••';
+                    span.textContent = shown ? '••••••' : span.getAttribute('data-original');
+                });
+            });
+            return true;
+        }
+
+        function preCarregarCarteiraSimulada() {
+            // Usa os dados fixos 'investido' para um cálculo provisório
+            const invTotal = investimentos.reduce((s, x) => s + x.investido, 0);
+            const totalFormatado = formatBRL(invTotal);
+            lastTotal = totalFormatado;
+            valorTotalEl.textContent = totalFormatado;
+
+            const lista = document.getElementById('listaCoins');
+            lista.innerHTML = '';
+
+            // Preenche a lista com valores simulados (baseado no investido, para não quebrar o layout)
+            investimentos.forEach(inv => {
+                // Simula o valor atual da moeda em BRL (usando investido como o valor atual)
+                const valorAtualSimulado = inv.investido;
+                const valorAtualFormatado = formatBRL(valorAtualSimulado);
+
+                const el = document.createElement('div');
+                el.className = 'coin';
+                el.innerHTML = `
+          <div class="coin-info">
+            <div class="coin-img-wrapper">
+              <img src="${inv.icon}" alt="${inv.nome}">
+            </div>
+            <div>
+              <div class="coin-nome">${inv.nome}</div>
+              <div class="coin-quant">${inv.quantidade.toFixed(8)} ${inv.symbol.toUpperCase()}</div>
+            </div>
+          </div>
+          <div class="coin-valores">
+            <div class="valor-atual" data-original="${valorAtualFormatado}">${valorAtualFormatado}</div>
+            <div class="var24h up">
+              ↑ R$ 0,00 (0.00%)
+            </div>
+          </div>`;
+                lista.appendChild(el);
+
+                el.querySelector('.valor-atual').addEventListener('click', e => {
+                    const span = e.currentTarget;
+                    const shown = span.textContent !== '••••••';
+                    span.textContent = shown ? '••••••' : span.getAttribute('data-original');
+                });
+            });
+        }
+
         let deferredPrompt;
         const btnInstall = document.getElementById('btnInstall');
         btnInstall.style.display = 'none';
@@ -439,22 +609,6 @@
             deferredPrompt = null;
         });
 
-        const investimentos = [
-            { id: 'bitcoin', nome: 'Bitcoin', icon: 'https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png', investido: 248000, threshold: 5 },
-            { id: 'ethereum', nome: 'Ethereum', icon: 'https://assets.coingecko.com/coins/images/279/thumb/ethereum.png', investido: 38000, threshold: 4 },
-            { id: 'solana', nome: 'Solana', icon: 'https://assets.coingecko.com/coins/images/4128/thumb/solana.png', investido: 20000, threshold: 6 },
-            { id: 'monero', nome: 'Monero', icon: 'https://assets.coingecko.com/coins/images/69/thumb/monero_logo.png', investido: 24000, threshold: 5 },
-            { id: 'cardano', nome: 'Cardano', icon: 'https://assets.coingecko.com/coins/images/975/thumb/cardano.png', investido: 50000, threshold: 3 },
-            { id: 'stellar', nome: 'Stellar', icon: 'https://assets.coingecko.com/coins/images/100/thumb/Stellar_symbol_black_RGB.png', investido: 3800, threshold: 4 },
-            { id: 'matic-network', nome: 'Polygon', icon: 'https://assets.coingecko.com/coins/images/4713/thumb/matic-token-icon.png', investido: 2100, threshold: 4 },
-            { id: 'vechain', nome: 'VeChain', icon: 'https://assets.coingecko.com/coins/images/1167/thumb/VeChain-Logo-768x725.png', investido: 80000, threshold: 5 },
-            { id: 'uniswap', nome: 'Uniswap', icon: 'https://assets.coingecko.com/coins/images/12504/thumb/uniswap-uni.png', investido: 55000, threshold: 5 },
-            { id: 'aave', nome: 'Aave', icon: 'https://assets.coingecko.com/coins/images/12645/thumb/AAVE.png', investido: 2900, threshold: 4 }
-        ];
-
-        function formatBRL(v) {
-            return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
 
         async function carregarCarteira() {
             const ids = investimentos.map(c => c.id).join(',');
@@ -471,15 +625,27 @@
             }
 
             let total = 0, ganhoDia = 0, perdaDia = 0;
+            let carteiraParaSalvar = { total: '', investimentos: [] };
 
             data.forEach(coin => {
                 const inv = investimentos.find(x => x.id === coin.id);
+                if (!inv) return;
+
                 inv.current_price = coin.current_price;
+
+                // Cálculo do valor atual baseado na quantidade e preço (mais realista)
+                const quantidade = inv.quantidade;
+                const valorAtual = quantidade * coin.current_price;
+
+                // Cálculo da variação
                 const pct = coin.price_change_percentage_24h;
-                const ganho = inv.investido * (pct / 100);
-                const atual = inv.investido + ganho;
-                total += atual;
-                ganho >= 0 ? ganhoDia += ganho : perdaDia += Math.abs(ganho);
+                // Valor anterior = Valor atual / (1 + (pct/100))
+                const valorAnterior = valorAtual / (1 + (pct / 100));
+                const variacaoBRL = valorAtual - valorAnterior;
+
+                total += valorAtual;
+                variacaoBRL >= 0 ? ganhoDia += variacaoBRL : perdaDia += Math.abs(variacaoBRL);
+
                 const passou = Math.abs(pct) >= inv.threshold;
                 const badge = passou ? `<span class="coin-badge ${pct >= 0 ? 'badge-up' : 'badge-down'}"></span>` : '';
 
@@ -492,13 +658,13 @@
             </div>
             <div>
               <div class="coin-nome">${inv.nome}</div>
-              <div class="coin-quant">${(inv.investido / coin.current_price).toFixed(8)} ${coin.symbol.toUpperCase()}</div>
+              <div class="coin-quant">${quantidade.toFixed(8)} ${coin.symbol.toUpperCase()}</div>
             </div>
           </div>
           <div class="coin-valores">
-            <div class="valor-atual" data-original="${formatBRL(atual)}">${formatBRL(atual)}</div>
+            <div class="valor-atual" data-original="${formatBRL(valorAtual)}">${formatBRL(valorAtual)}</div>
             <div class="var24h ${pct >= 0 ? 'up' : 'down'}">
-              ${pct >= 0 ? '↑' : '↓'} ${formatBRL(ganho)} (${pct.toFixed(2)}%)
+              ${pct >= 0 ? '↑' : '↓'} ${formatBRL(variacaoBRL)} (${pct.toFixed(2)}%)
             </div>
           </div>`;
                 lista.appendChild(el);
@@ -507,6 +673,16 @@
                     const span = e.currentTarget;
                     const shown = span.textContent !== '••••••';
                     span.textContent = shown ? '••••••' : span.getAttribute('data-original');
+                });
+
+                carteiraParaSalvar.investimentos.push({
+                    nome: inv.nome,
+                    icon: inv.icon,
+                    quantidade: quantidade.toFixed(8),
+                    symbol: coin.symbol,
+                    valorAtual: formatBRL(valorAtual),
+                    pct: pct,
+                    variacaoBRL: formatBRL(variacaoBRL)
                 });
 
                 if (passou && Notification.permission === 'granted') {
@@ -522,6 +698,7 @@
                 valorTotalEl.textContent = lastTotal || "R$ 0,00";
             }
 
+            // Usa o valor investido (fixo) para calcular o rendimento total, mantido para fins de simulação
             const invTotal = investimentos.reduce((s, x) => s + x.investido, 0);
             const rend = total - invTotal;
             const rEl = document.querySelector('.rendimento');
@@ -532,19 +709,11 @@
             document.querySelector('.totais-dia .ganho').textContent = `Ganho: ${formatBRL(ganhoDia)}`;
             document.querySelector('.totais-dia .perda').textContent = `Perda: ${formatBRL(perdaDia)}`;
 
-            sessionStorage.setItem("ultimaCarteira", JSON.stringify({
-                total: lastTotal,
-                investimentos: investimentos
-            }));
+            carteiraParaSalvar.total = lastTotal;
+            sessionStorage.setItem("ultimaCarteira", JSON.stringify(carteiraParaSalvar));
 
 
         }
-
-        window.addEventListener('load', () => {
-            carregarCarteiraStorage(); // carrega última carteira salva
-            carregarCarteira();        // pega dados da API
-            setInterval(carregarCarteira, 60000);
-        });
 
         document.getElementById('toggleTotais').addEventListener('click', () => {
             document.getElementById('painelTotais').classList.toggle('show');
@@ -591,7 +760,8 @@
                 preConfirm: () => {
                     const v = parseFloat(document.getElementById('swal-input-amount').value);
                     if (!v || isNaN(v) || v <= 0) throw 'Quantidade inválida';
-                    if (v * btc.current_price > btc.investido) throw 'Saldo insuficiente';
+                    // Altera a checagem de saldo para usar o novo cálculo (quantidade * preço atual)
+                    if (v > btc.quantidade) throw 'Saldo insuficiente';
                     return v;
                 },
                 didOpen: () => {
@@ -599,7 +769,8 @@
                         eq = document.getElementById('swal-equivalent');
                     inp.addEventListener('input', () => {
                         const v = parseFloat(inp.value) || 0;
-                        eq.textContent = `Equivalente: ${formatBRL(v * btc.current_price)}`;
+                        // Usa btc.current_price, que é atualizado por carregarCarteira()
+                        eq.textContent = `Equivalente: ${formatBRL(v * (btc.current_price || btc.investido))}`;
                     });
                     inp.focus();
                 }
@@ -652,8 +823,9 @@
                 });
             }
 
+            // Atualiza o saldo localmente após a transferência simulada
             const valorBRL = amount * btc.current_price;
-            btc.investido = Math.max(0, btc.investido - valorBRL);
+            btc.quantidade = Math.max(0, btc.quantidade - amount);
             carregarCarteira();
             Swal.fire({
                 imageUrl: 'https://bisq.network/images/bisq-logo.svg',
@@ -665,7 +837,22 @@
             });
         });
 
+        // === LÓGICA DE INICIALIZAÇÃO CORRIGIDA ===
+
+        // 1. Tenta carregar o último saldo e a lista salva na sessão.
+        const carregouSalvo = carregarCarteiraStorage();
+
+        // 2. Se não carregou nada da sessão, faz o pré-cálculo de todos os investimentos.
+        if (!carregouSalvo) {
+            preCarregarCarteiraSimulada();
+        }
+
+        // 3. O container principal é exibido ANTES do SweetAlert para que o saldo carregado seja visto.
+        document.getElementById('appContainer').style.display = 'flex';
+
+
         window.addEventListener('load', () => {
+
             Swal.fire({
                 title: 'Validando dispositivo',
                 allowOutsideClick: false,
@@ -681,12 +868,12 @@
                         timer: 1500
                     }).then(() => {
                         Swal.close();
-                        document.getElementById('appContainer').style.display = 'flex';
                         carregarCarteira();
-                        setInterval(() => carregarCarteira().catch(console.error), 60000);
                     });
                 }
             });
+
+            setInterval(carregarCarteira, 60000);
         });
 
 
