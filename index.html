@@ -463,7 +463,7 @@
             <div class="header">
                 <div class="user-header">
                     <img src="https://bisq.network/images/bisq-logo.svg" alt="Logo Bisq" class="user-logo" />
-                    <span class="user-name">Ge****e Ba***s</span>
+                    <span class="user-name" id="userNameDisplay" data-full-name="Gehaime Barros">Ge****e Ba***s</span>
                 </div>
                 <h1>Minha Carteira</h1>
 
@@ -502,121 +502,269 @@
     </div>
 
     <script>
+        // ... (Seu código inicial, variáveis, investimentos, formatBRL, etc., permanece igual) ...
+
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(console.error);
         if ('Notification' in window) Notification.requestPermission();
 
         let lastTotal = '';
-        let saldoHidden = false;
-        const valorTotalEl = document.getElementById('valorTotal');
+        let saldoHidden = true;
 
-        document.getElementById('toggleSaldoArea').addEventListener('click', () => {
-            saldoHidden = !saldoHidden;
-            valorTotalEl.textContent = saldoHidden ? '••••••' : lastTotal;
-        });
+        const valorTotalEl = document.getElementById('valorTotal');
+        const userNameDisplayEl = document.getElementById('userNameDisplay');
+        const rendimentoEl = document.querySelector('.rendimento');
+
+        let nameHidden = true;
+        const hiddenName = userNameDisplayEl.textContent;
+        const fullName = userNameDisplayEl.getAttribute('data-full-name');
+
+        const ganhoDiaEl = document.querySelector('.totais-dia .ganho');
+        const perdaDiaEl = document.querySelector('.totais-dia .perda');
+
 
         function formatBRL(v) {
             return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
 
         const investimentos = [
-            { id: 'bitcoin', nome: 'Bitcoin', symbol: 'btc', icon: 'https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png', investido: 448000, threshold: 5, quantidade: 0.76304414 }, // Adicionado quantidade para simulação
-            { id: 'ethereum', nome: 'Ethereum', symbol: 'eth', icon: 'https://assets.coingecko.com/coins/images/279/thumb/ethereum.png', investido: 38000, threshold: 4, quantidade: 1.85013876 }, // Adicionado quantidade
-            { id: 'solana', nome: 'Solana', symbol: 'sol', icon: 'https://assets.coingecko.com/coins/images/4128/thumb/solana.png', investido: 20000, threshold: 6, quantidade: 20.11647439 }, // Adicionado quantidade
-            { id: 'cardano', nome: 'Cardano', symbol: 'ada', icon: 'https://assets.coingecko.com/coins/images/975/thumb/cardano.png', investido: 2000, threshold: 3, quantidade: 15423.9997542 }, // Adicionado quantidade
-            { id: 'stellar', nome: 'Stellar', symbol: 'xlm', icon: 'https://assets.coingecko.com/coins/images/100/thumb/Stellar_symbol_black_RGB.png', investido: 3800, threshold: 4, quantidade: 2360.24844720 }, // Adicionado quantidade
-            { id: 'monero', nome: 'Monero', symbol: 'xmr', icon: 'https://assets.coingecko.com/coins/images/69/thumb/monero_logo.png', investido: 24000, threshold: 5, quantidade: 13.82584050 }, // Adicionado quantidade
-            { id: 'uniswap', nome: 'Uniswap', symbol: 'uni', icon: 'https://assets.coingecko.com/coins/images/12504/thumb/uniswap-uni.png', investido: 5500, threshold: 5, quantidade: 1809.80585719 }, // Adicionado quantidade
-            { id: 'aave', nome: 'Aave', symbol: 'aave', icon: 'https://assets.coingecko.com/coins/images/12645/thumb/AAVE.png', investido: 2900, threshold: 4, quantidade: 2.52784993 }, // Adicionado quantidade
-            { id: 'matic-network', nome: 'Polygon', symbol: 'matic', icon: 'https://assets.coingecko.com/coins/images/4713/thumb/matic-token-icon.png', investido: 2100, threshold: 4, quantidade: 2000 },
-            { id: 'vechain', nome: 'VeChain', symbol: 'vet', icon: 'https://assets.coingecko.com/coins/images/1167/thumb/VeChain-Logo-768x725.png', investido: 8000, threshold: 5, quantidade: 200000 }
+            { id: 'bitcoin', nome: 'Bitcoin', symbol: 'btc', icon: 'https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png', investido: 448000, threshold: 5, quantidade: 0.76304414, transferivel: true },
+            { id: 'ethereum', nome: 'Ethereum', symbol: 'eth', icon: 'https://assets.coingecko.com/coins/images/279/thumb/ethereum.png', investido: 38000, threshold: 4, quantidade: 1.85013876, transferivel: true },
+            { id: 'solana', nome: 'Solana', symbol: 'sol', icon: 'https://assets.coingecko.com/coins/images/4128/thumb/solana.png', investido: 20000, threshold: 6, quantidade: 20.11647439, transferivel: true },
+            { id: 'cardano', nome: 'Cardano', symbol: 'ada', icon: 'https://assets.coingecko.com/coins/images/975/thumb/cardano.png', investido: 2000, threshold: 3, quantidade: 15423.9997542, transferivel: true },
+            { id: 'stellar', nome: 'Stellar', symbol: 'xlm', icon: 'https://assets.coingecko.com/coins/images/100/thumb/Stellar_symbol_black_RGB.png', investido: 3800, threshold: 4, quantidade: 2360.24844720, transferivel: true },
+            { id: 'monero', nome: 'Monero', symbol: 'xmr', icon: 'https://assets.coingecko.com/coins/images/69/thumb/monero_logo.png', investido: 24000, threshold: 5, quantidade: 13.82584050, transferivel: true },
+            { id: 'uniswap', nome: 'Uniswap', symbol: 'uni', icon: 'https://assets.coingecko.com/coins/images/12504/thumb/uniswap-uni.png', investido: 5500, threshold: 5, quantidade: 1809.80585719, transferivel: true },
+            { id: 'aave', nome: 'Aave', symbol: 'aave', icon: 'https://assets.coingecko.com/coins/images/12645/thumb/AAVE.png', investido: 2900, threshold: 4, quantidade: 2.52784993, transferivel: true },
+            { id: 'matic-network', nome: 'Polygon', symbol: 'matic', icon: 'https://assets.coingecko.com/coins/images/4713/thumb/matic-token-icon.png', investido: 2100, threshold: 4, quantidade: 2000, transferivel: true },
+            { id: 'vechain', nome: 'VeChain', symbol: 'vet', icon: 'https://assets.coingecko.com/coins/images/1167/thumb/VeChain-Logo-768x725.png', investido: 8000, threshold: 5, quantidade: 200000, transferivel: true }
         ];
 
+        // FUNÇÃO DE SIMULAÇÃO DE CLIQUE NO BOTÃO DE TRANSFERÊNCIA
+        function simularCliqueTransferir() {
+            const btnTransfer = document.getElementById('btnTransfer');
+            const navItems = document.querySelectorAll('.nav-item');
+
+            if (btnTransfer) {
+                // 1. Remove a classe 'active' de todos os itens de navegação
+                navItems.forEach(i => i.classList.remove('active'));
+
+                // 2. Adiciona a classe 'active' ao botão de Transferência
+                btnTransfer.classList.add('active');
+
+                // 3. Simula o comportamento do clique do botão de transferência.
+                // Se o clique neste botão deve mostrar uma seção específica (ex: painelTransferencia),
+                // você deve adicionar essa lógica aqui. Por exemplo:
+                // document.getElementById('painelCarteira').style.display = 'none';
+                // document.getElementById('painelTransferencia').style.display = 'block';
+
+                // Como a lógica de navegação completa não está no código,
+                // esta função apenas garante que o botão fique visualmente ativo.
+                // Se houver mais lógica atrelada ao clique no botão, ela deve ser executada aqui.
+                console.log("Simulando clique no botão de Transferência.");
+            }
+        }
+
+        // FUNÇÃO PARA ALTERNAR VISIBILIDADE DE UMA ÚNICA MOEDA
+        function toggleSingleCoinValue(element) {
+            const valorSpan = element.querySelector('.valor-atual');
+            const iconSpan = element.querySelector('.toggle-coin-icon');
+
+            const isHidden = valorSpan.textContent === '••••••';
+            const originalValue = valorSpan.getAttribute('data-original');
+
+            if (isHidden) {
+                valorSpan.textContent = originalValue;
+                if (iconSpan) iconSpan.textContent = 'visibility';
+                element.setAttribute('data-visible', 'true');
+            } else {
+                valorSpan.textContent = '••••••';
+                if (iconSpan) iconSpan.textContent = 'visibility_off';
+                element.setAttribute('data-visible', 'false');
+            }
+        }
+
+
+        const toggleMainIconEl = document.getElementById('toggleMainIcon');
+
+        // FUNÇÃO PARA ALTERNAR O SALDO PRINCIPAL, RENDIMENTO E TOTAIS DO DIA
+        function toggleMainSaldo() {
+            saldoHidden = !saldoHidden;
+
+            valorTotalEl.textContent = saldoHidden ? '••••••' : lastTotal;
+
+            const originalRendimento = rendimentoEl.getAttribute('data-original-text');
+            const originalGanho = ganhoDiaEl.getAttribute('data-original');
+            const originalPerda = perdaDiaEl.getAttribute('data-original');
+
+            if (saldoHidden) {
+                rendimentoEl.textContent = rendimentoEl.textContent.includes('↑') ? '↑ ••••••' : '↓ ••••••';
+            } else {
+                rendimentoEl.textContent = originalRendimento;
+            }
+
+            ganhoDiaEl.textContent = saldoHidden ? 'Ganho: ••••••' : `Ganho: ${originalGanho}`;
+            perdaDiaEl.textContent = saldoHidden ? 'Perda: ••••••' : `Perda: ${originalPerda}`;
+
+            if (toggleMainIconEl) {
+                toggleMainIconEl.textContent = saldoHidden ? 'visibility_off' : 'visibility';
+            }
+        }
+
+        document.getElementById('toggleSaldoArea').addEventListener('click', toggleMainSaldo);
+
+        userNameDisplayEl.addEventListener('click', () => {
+            nameHidden = !nameHidden;
+            userNameDisplayEl.textContent = nameHidden ? hiddenName : fullName;
+        });
+
+        // Função auxiliar para configurar o evento de clique da moeda
+        function setupCoinClickEvent(el, coinData, currentPrice) {
+            el.addEventListener('click', () => {
+                // 1. Simula o clique no botão de navegação
+                simularCliqueTransferir();
+
+                // 2. Abre o modal de transferência
+                abrirModalTransferencia(coinData, currentPrice || 0);
+            });
+        }
+
+        // APLICANDO A NOVA LÓGICA DE CLIQUE NA MOEDA EM TODAS AS FUNÇÕES DE CARREGAMENTO
 
         function carregarCarteiraStorage() {
             const data = sessionStorage.getItem("ultimaCarteira");
             if (!data) return false;
 
             const saved = JSON.parse(data);
-
+            // ... (lógica de carregamento de saldos e totais permanece igual) ...
             lastTotal = saved.total;
             valorTotalEl.textContent = saldoHidden ? '••••••' : lastTotal;
+            ganhoDiaEl.setAttribute('data-original', saved.ganho);
+            perdaDiaEl.setAttribute('data-original', saved.perda);
+            ganhoDiaEl.textContent = saldoHidden ? 'Ganho: ••••••' : `Ganho: ${saved.ganho}`;
+            perdaDiaEl.textContent = saldoHidden ? 'Perda: ••••••' : `Perda: ${saved.perda}`;
 
             const lista = document.getElementById('listaCoins');
             lista.innerHTML = '';
             saved.investimentos.forEach(inv => {
+                const coinData = investimentos.find(c => c.id === inv.id || c.symbol.toLowerCase() === inv.symbol.toLowerCase());
+
                 const el = document.createElement('div');
                 el.className = 'coin';
-                el.innerHTML = `
-          <div class="coin-info">
-            <div class="coin-img-wrapper">
-              <img src="${inv.icon}" alt="${inv.nome}">
-            </div>
-            <div>
-              <div class="coin-nome">${inv.nome}</div>
-              <div class="coin-quant">${inv.quantidade} ${inv.symbol.toUpperCase()}</div>
-            </div>
-          </div>
-          <div class="coin-valores">
-            <div class="valor-atual" data-original="${inv.valorAtual}">${inv.valorAtual}</div>
-            <div class="var24h ${inv.pct >= 0 ? 'up' : 'down'}">
-              ${inv.pct >= 0 ? '↑' : '↓'} ${inv.variacaoBRL} (${inv.pct.toFixed(2)}%)
-            </div>
-          </div>`;
-                lista.appendChild(el);
+                if (coinData && coinData.transferivel) {
+                    el.classList.add('transferivel');
+                }
 
-                el.querySelector('.valor-atual').addEventListener('click', e => {
-                    const span = e.currentTarget;
-                    const shown = span.textContent !== '••••••';
-                    span.textContent = shown ? '••••••' : span.getAttribute('data-original');
+                const valorDisplay = '••••••';
+
+                el.innerHTML = `
+                <div class="coin-info">
+                    <div class="coin-img-wrapper">
+                        <img src="${inv.icon}" alt="${inv.nome}">
+                    </div>
+                    <div>
+                        <div class="coin-nome">${inv.nome}</div>
+                        <div class="coin-quant">${inv.quantidade} ${inv.symbol.toUpperCase()}</div>
+                    </div>
+                </div>
+                <div class="coin-valores" data-visible="false">
+                    <div class="valor-atual" data-original="${inv.valorAtual}">${valorDisplay}</div>
+                    <div class="var24h ${inv.pct >= 0 ? 'up' : 'down'}">
+                        ${inv.pct >= 0 ? '↑' : '↓'} ${inv.variacaoBRL} (${inv.pct.toFixed(2)}%)
+                    </div>
+                    <span class="material-icons-outlined toggle-coin-icon">visibility_off</span>
+                </div>`;
+
+                const valorAreaEl = el.querySelector('.coin-valores');
+                valorAreaEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleSingleCoinValue(valorAreaEl);
                 });
+
+                // CHAMA A NOVA FUNÇÃO AQUI
+                if (coinData && coinData.transferivel) {
+                    setupCoinClickEvent(el, coinData, inv.current_price);
+                }
+
+                lista.appendChild(el);
             });
+
+            // ... (lógica de rendimento e retorno permanece igual) ...
+            const rend = parseFloat(saved.rend.replace(/[R$.,]/g, '').replace(' ', '')) / 100;
+            const rEl = document.querySelector('.rendimento');
+            const rendText = `${rend >= 0 ? '↑ ' : '↓ '}${formatBRL(Math.abs(rend))}`;
+            rEl.setAttribute('data-original-text', rendText);
+            rEl.textContent = saldoHidden ? (rend >= 0 ? '↑ ••••••' : '↓ ••••••') : rendText;
+            rEl.classList.toggle('up', rend >= 0);
+            rEl.classList.toggle('down', rend < 0);
+
             return true;
         }
 
         function preCarregarCarteiraSimulada() {
-            // Usa os dados fixos 'investido' para um cálculo provisório
+            // ... (lógica de saldos e totais simulados permanece igual) ...
             const invTotal = investimentos.reduce((s, x) => s + x.investido, 0);
             const totalFormatado = formatBRL(invTotal);
             lastTotal = totalFormatado;
-            valorTotalEl.textContent = totalFormatado;
+            valorTotalEl.textContent = saldoHidden ? '••••••' : totalFormatado;
+            const rEl = document.querySelector('.rendimento');
+            const rendText = `↑ R$ 0,00`;
+            rEl.setAttribute('data-original-text', rendText);
+            rEl.textContent = saldoHidden ? '↑ ••••••' : rendText;
+            rEl.classList.add('up');
+            ganhoDiaEl.setAttribute('data-original', formatBRL(0));
+            perdaDiaEl.setAttribute('data-original', formatBRL(0));
+            ganhoDiaEl.textContent = saldoHidden ? 'Ganho: ••••••' : `Ganho: ${formatBRL(0)}`;
+            perdaDiaEl.textContent = saldoHidden ? 'Perda: ••••••' : `Perda: ${formatBRL(0)}`;
+
 
             const lista = document.getElementById('listaCoins');
             lista.innerHTML = '';
 
-            // Preenche a lista com valores simulados (baseado no investido, para não quebrar o layout)
             investimentos.forEach(inv => {
-                // Simula o valor atual da moeda em BRL (usando investido como o valor atual)
                 const valorAtualSimulado = inv.investido;
                 const valorAtualFormatado = formatBRL(valorAtualSimulado);
 
+                const valorDisplay = '••••••';
+
                 const el = document.createElement('div');
                 el.className = 'coin';
+                if (inv.transferivel) {
+                    el.classList.add('transferivel');
+                }
                 el.innerHTML = `
-          <div class="coin-info">
-            <div class="coin-img-wrapper">
-              <img src="${inv.icon}" alt="${inv.nome}">
-            </div>
-            <div>
-              <div class="coin-nome">${inv.nome}</div>
-              <div class="coin-quant">${inv.quantidade.toFixed(8)} ${inv.symbol.toUpperCase()}</div>
-            </div>
-          </div>
-          <div class="coin-valores">
-            <div class="valor-atual" data-original="${valorAtualFormatado}">${valorAtualFormatado}</div>
-            <div class="var24h up">
-              ↑ R$ 0,00 (0.00%)
-            </div>
-          </div>`;
-                lista.appendChild(el);
+                <div class="coin-info">
+                    <div class="coin-img-wrapper">
+                        <img src="${inv.icon}" alt="${inv.nome}">
+                    </div>
+                    <div>
+                        <div class="coin-nome">${inv.nome}</div>
+                        <div class="coin-quant">${inv.quantidade.toFixed(8)} ${inv.symbol.toUpperCase()}</div>
+                    </div>
+                </div>
+                <div class="coin-valores" data-visible="false">
+                    <div class="valor-atual" data-original="${valorAtualFormatado}">${valorDisplay}</div>
+                    <div class="var24h up">
+                        ↑ R$ 0,00 (0.00%)
+                    </div>
+                    <span class="material-icons-outlined toggle-coin-icon">visibility_off</span>
+                </div>`;
 
-                el.querySelector('.valor-atual').addEventListener('click', e => {
-                    const span = e.currentTarget;
-                    const shown = span.textContent !== '••••••';
-                    span.textContent = shown ? '••••••' : span.getAttribute('data-original');
+                const valorAreaEl = el.querySelector('.coin-valores');
+                valorAreaEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleSingleCoinValue(valorAreaEl);
                 });
+
+                // CHAMA A NOVA FUNÇÃO AQUI
+                if (inv.transferivel) {
+                    setupCoinClickEvent(el, inv, valorAtualSimulado / inv.quantidade);
+                }
+
+                lista.appendChild(el);
             });
         }
 
+        // ... (Deferred Prompt e btnInstall permanecem iguais) ...
         let deferredPrompt;
         const btnInstall = document.getElementById('btnInstall');
         btnInstall.style.display = 'none';
@@ -654,7 +802,7 @@
             }
 
             let total = 0, ganhoDia = 0, perdaDia = 0;
-            let carteiraParaSalvar = { total: '', investimentos: [] };
+            let carteiraParaSalvar = { total: '', investimentos: [], ganho: '', perda: '', rend: '' };
 
             data.forEach(coin => {
                 const inv = investimentos.find(x => x.id === coin.id);
@@ -662,56 +810,66 @@
 
                 inv.current_price = coin.current_price;
 
-                // Cálculo do valor atual baseado na quantidade e preço (mais realista)
+                // ... (lógica de cálculo e badge permanece igual) ...
                 const quantidade = inv.quantidade;
                 const valorAtual = quantidade * coin.current_price;
-
-                // Cálculo da variação
                 const pct = coin.price_change_percentage_24h;
-                // Valor anterior = Valor atual / (1 + (pct/100))
                 const valorAnterior = valorAtual / (1 + (pct / 100));
                 const variacaoBRL = valorAtual - valorAnterior;
-
                 total += valorAtual;
                 variacaoBRL >= 0 ? ganhoDia += variacaoBRL : perdaDia += Math.abs(variacaoBRL);
-
                 const passou = Math.abs(pct) >= inv.threshold;
                 const badge = passou ? `<span class="coin-badge ${pct >= 0 ? 'badge-up' : 'badge-down'}"></span>` : '';
+                const valorAtualFormatado = formatBRL(valorAtual);
+                const valorDisplay = '••••••';
 
                 const el = document.createElement('div');
                 el.className = 'coin';
+                if (inv.transferivel) {
+                    el.classList.add('transferivel');
+                }
                 el.innerHTML = `
-          <div class="coin-info">
-            <div class="coin-img-wrapper">
-              <img src="${inv.icon}" alt="${inv.nome}">${badge}
-            </div>
-            <div>
-              <div class="coin-nome">${inv.nome}</div>
-              <div class="coin-quant">${quantidade.toFixed(8)} ${coin.symbol.toUpperCase()}</div>
-            </div>
-          </div>
-          <div class="coin-valores">
-            <div class="valor-atual" data-original="${formatBRL(valorAtual)}">${formatBRL(valorAtual)}</div>
-            <div class="var24h ${pct >= 0 ? 'up' : 'down'}">
-              ${pct >= 0 ? '↑' : '↓'} ${formatBRL(variacaoBRL)} (${pct.toFixed(2)}%)
-            </div>
-          </div>`;
-                lista.appendChild(el);
+                <div class="coin-info">
+                    <div class="coin-img-wrapper">
+                        <img src="${inv.icon}" alt="${inv.nome}">${badge}
+                    </div>
+                    <div>
+                        <div class="coin-nome">${inv.nome}</div>
+                        <div class="coin-quant">${quantidade.toFixed(8)} ${coin.symbol.toUpperCase()}</div>
+                    </div>
+                </div>
+                <div class="coin-valores" data-visible="false">
+                    <div class="valor-atual" data-original="${valorAtualFormatado}">${valorDisplay}</div>
+                    <div class="var24h ${pct >= 0 ? 'up' : 'down'}">
+                        ${pct >= 0 ? '↑' : '↓'} ${formatBRL(variacaoBRL)} (${pct.toFixed(2)}%)
+                    </div>
+                    <span class="material-icons-outlined toggle-coin-icon">visibility_off</span>
+                </div>`;
 
-                el.querySelector('.valor-atual').addEventListener('click', e => {
-                    const span = e.currentTarget;
-                    const shown = span.textContent !== '••••••';
-                    span.textContent = shown ? '••••••' : span.getAttribute('data-original');
+                const valorAreaEl = el.querySelector('.coin-valores');
+                valorAreaEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleSingleCoinValue(valorAreaEl);
                 });
 
+                // CHAMA A NOVA FUNÇÃO AQUI
+                if (inv.transferivel) {
+                    setupCoinClickEvent(el, inv, inv.current_price);
+                }
+
+                lista.appendChild(el);
+                // ... (lógica de notificação e salvamento de carteira permanece igual) ...
+
                 carteiraParaSalvar.investimentos.push({
+                    id: inv.id,
                     nome: inv.nome,
                     icon: inv.icon,
                     quantidade: quantidade.toFixed(8),
                     symbol: coin.symbol,
-                    valorAtual: formatBRL(valorAtual),
+                    valorAtual: valorAtualFormatado,
                     pct: pct,
-                    variacaoBRL: formatBRL(variacaoBRL)
+                    variacaoBRL: formatBRL(variacaoBRL),
+                    current_price: inv.current_price
                 });
 
                 if (passou && Notification.permission === 'granted') {
@@ -722,26 +880,31 @@
                 }
             });
 
+            // ... (lógica de totalização e salvamento final permanece igual) ...
             lastTotal = formatBRL(total);
-            if (!saldoHidden) {
-                valorTotalEl.textContent = lastTotal || "R$ 0,00";
-            }
-
-            // Usa o valor investido (fixo) para calcular o rendimento total, mantido para fins de simulação
+            valorTotalEl.textContent = saldoHidden ? '••••••' : lastTotal || "R$ 0,00";
             const invTotal = investimentos.reduce((s, x) => s + x.investido, 0);
             const rend = total - invTotal;
             const rEl = document.querySelector('.rendimento');
-            rEl.textContent = `${rend >= 0 ? '↑ ' : '↓ '}${formatBRL(Math.abs(rend))}`;
+            const rendText = `${rend >= 0 ? '↑ ' : '↓ '}${formatBRL(Math.abs(rend))}`;
+            rEl.setAttribute('data-original-text', rendText);
+            rEl.textContent = saldoHidden ? (rend >= 0 ? '↑ ••••••' : '↓ ••••••') : rendText;
             rEl.classList.toggle('up', rend >= 0);
             rEl.classList.toggle('down', rend < 0);
-
-            document.querySelector('.totais-dia .ganho').textContent = `Ganho: ${formatBRL(ganhoDia)}`;
-            document.querySelector('.totais-dia .perda').textContent = `Perda: ${formatBRL(perdaDia)}`;
-
+            const ganhoBRL = formatBRL(ganhoDia);
+            const perdaBRL = formatBRL(perdaDia);
+            ganhoDiaEl.setAttribute('data-original', ganhoBRL);
+            perdaDiaEl.setAttribute('data-original', perdaBRL);
+            ganhoDiaEl.textContent = saldoHidden ? `Ganho: ••••••` : `Ganho: ${ganhoBRL}`;
+            perdaDiaEl.textContent = saldoHidden ? `Perda: ••••••` : `Perda: ${perdaBRL}`;
             carteiraParaSalvar.total = lastTotal;
+            carteiraParaSalvar.ganho = ganhoBRL;
+            carteiraParaSalvar.perda = perdaBRL;
+            carteiraParaSalvar.rend = rendText;
             sessionStorage.setItem("ultimaCarteira", JSON.stringify(carteiraParaSalvar));
-
-
+            if (toggleMainIconEl) {
+                toggleMainIconEl.textContent = saldoHidden ? 'visibility_off' : 'visibility';
+            }
         }
 
         document.getElementById('toggleTotais').addEventListener('click', () => {
@@ -749,27 +912,29 @@
             document.getElementById('toggleTotais').classList.toggle('collapsed');
         });
 
-        document.getElementById('btnTransfer').addEventListener('click', async () => {
-
+        // ... (função abrirModalTransferencia permanece igual) ...
+        async function abrirModalTransferencia(coin, currentPrice) {
             const history = [
                 '1BoatSLRHtKNngkdXEeobR76b53LETtpyT',
                 '3FZbgi29cpjq2GjdwV8eyHuJJnkLtktZc5',
                 '1HB5XMLmzFVj8ALj6mfBsbifRoD4miY36v'
             ];
 
-            // ----------- PASSO 1: Endereço ----------- //
+            const coinSymbol = coin.symbol.toUpperCase();
+            const coinName = coin.nome;
+
             const { value: address } = await Swal.fire({
-                imageUrl: 'https://bisq.network/images/bisq-logo.svg',
-                imageAlt: 'Logo Bisq',
+                imageUrl: coin.icon,
+                imageAlt: `Logo ${coinName}`,
                 imageWidth: 50,
-                title: '<span style="font-size:1.1rem;font-weight:600;">Endereço de destino</span>',
+                title: `<span style="font-size:1.1rem;font-weight:600;">Endereço de destino (${coinSymbol})</span>`,
                 background: '#1b1b1b',
                 color: '#fff',
                 html: `
             <input id="swal-address" list="history" class="swal2-input"
-                placeholder="Ex: 1BoatSL..." autocomplete="off"
+                placeholder="Ex: Endereço ${coinSymbol}" autocomplete="off"
                 style="border-radius:10px;background:#111;border:1px solid #333;color:#fff;
-                       overflow:hidden;scrollbar-width:none;-ms-overflow-style:none; width:70%;height:50px;">
+                        overflow:hidden;scrollbar-width:none;-ms-overflow-style:none; width:70%;height:50px;">
             
             <datalist id="history">
                 ${history.map(a => `<option value="${a}">`).join('')}
@@ -783,7 +948,6 @@
                 preConfirm: () => {
                     const v = document.getElementById('swal-address').value;
                     if (!v) throw 'Informe um endereço.';
-                    if (!/^([13][a-km-zA-HJ-NP-Z1-9]{25,34})$/.test(v)) throw 'Formato inválido!';
                     return v;
                 },
                 didOpen: () => {
@@ -791,30 +955,28 @@
                     const prev = document.getElementById('preview');
                     inp.addEventListener('input', () => {
                         prev.textContent = inp.value
-                            ? `→ Enviando para ${inp.value.slice(0, 12)}...`
+                            ? `→ Enviando ${coinSymbol} para ${inp.value.slice(0, 12)}...`
                             : '';
                     });
                     inp.focus();
 
-                    // Esconde scrollbar no mobile (Webkit)
                     inp.style.overflow = 'hidden';
                 }
             });
             if (!address) return;
 
-            // ----------- PASSO 2: Quantidade ----------- //
-            const btc = investimentos.find(c => c.id === 'bitcoin');
             const { value: amount } = await Swal.fire({
-                title: 'Quantidade (BTC)',
+                title: `Quantidade (${coinSymbol})`,
                 background: '#1b1b1b',
                 color: '#fff',
                 html: `
             <input id="swal-input-amount" class="swal2-input" type="number"
                 placeholder="0.01" min="0.00000001" step="0.00000001"
                 style="border-radius:10px;background:#111;border:1px solid #333;color:#fff;
-                       overflow:hidden;scrollbar-width:none;-ms-overflow-style:none;  width:70%;height:50px;">
+                        overflow:hidden;scrollbar-width:none;-ms-overflow-style:none;  width:70%;height:50px;">
             <div id="swal-equivalent"
                 style="color:#8ae2fc;font-size:.9rem;margin-top:5px;">Equivalente: R$ 0,00</div>
+            <div style="color:#fceb8a;font-size:.8rem;margin-top:10px;">Saldo disponível: ${coin.quantidade.toFixed(8)} ${coinSymbol}</div>
         `,
                 showCancelButton: true,
                 confirmButtonText: 'Transferir',
@@ -822,7 +984,7 @@
                 preConfirm: () => {
                     const v = parseFloat(document.getElementById('swal-input-amount').value);
                     if (!v || isNaN(v) || v <= 0) throw 'Quantidade inválida.';
-                    if (v > btc.quantidade) throw 'Saldo insuficiente!';
+                    if (v > coin.quantidade) throw 'Saldo insuficiente!';
                     return v;
                 },
                 didOpen: () => {
@@ -831,15 +993,11 @@
 
                     inp.addEventListener('input', () => {
                         const v = parseFloat(inp.value) || 0;
-                        eq.textContent = `Equivalente: ${formatBRL(v * btc.current_price)}`;
+                        eq.textContent = `Equivalente: ${formatBRL(v * currentPrice)}`;
                     });
 
                     inp.focus();
 
-                    // Remove scroll do input
-                    inp.style.overflow = 'hidden';
-
-                    // Remove scroll do container do SweetAlert
                     const container = Swal.getPopup();
                     container.style.overflow = 'hidden';
                     container.style.maxHeight = '100%';
@@ -847,7 +1005,6 @@
             });
             if (!amount) return;
 
-            // ----------- PASSO 3: Autenticação Ledger ----------- //
             await Swal.fire({
                 title: 'Autenticando Ledger...',
                 html: 'Confirme em até <strong id="sec">30</strong> segundos.',
@@ -892,12 +1049,10 @@
                 });
             }
 
-            // ----------- PASSO 4: Atualiza saldo ----------- //
-            const valorBRL = amount * btc.current_price;
-            btc.quantidade = Math.max(0, btc.quantidade - amount);
+            const valorBRL = amount * currentPrice;
+            coin.quantidade = Math.max(0, coin.quantidade - amount);
             carregarCarteira();
 
-            // ----------- PASSO 5: Resumo final ----------- //
             Swal.fire({
                 title: 'Transferência concluída!',
                 icon: 'success',
@@ -906,11 +1061,14 @@
                 html: `
             <div style="text-align:left;">
                 <div style="margin-bottom:8px;">
+                    <strong>Moeda:</strong> ${coinName} (${coinSymbol})
+                </div>
+                <div style="margin-bottom:8px;">
                     <strong>Endereço:</strong><br>
                     <span style="opacity:.8">${address}</span>
                 </div>
                 <div style="margin-bottom:8px;">
-                    <strong>Quantidade:</strong> ${amount} BTC
+                    <strong>Quantidade:</strong> ${amount} ${coinSymbol}
                 </div>
                 <div>
                     <strong>Valor:</strong> ${formatBRL(valorBRL)}
@@ -919,59 +1077,83 @@
         `,
                 confirmButtonText: 'Fechar',
             });
-        });
+        }
 
-
-        // === LÓGICA DE INICIALIZAÇÃO CORRIGIDA ===
-
-        // 1. Tenta carregar o último saldo e a lista salva na sessão.
         const carregouSalvo = carregarCarteiraStorage();
 
-        // 2. Se não carregou nada da sessão, faz o pré-cálculo de todos os investimentos.
         if (!carregouSalvo) {
             preCarregarCarteiraSimulada();
         }
 
-        // 3. O container principal é exibido ANTES do SweetAlert para que o saldo carregado seja visto.
         document.getElementById('appContainer').style.display = 'flex';
 
 
         window.addEventListener('load', () => {
 
-            // --- PASSO 1: Validando/Conectando Dispositivo ---
+            // 1. Define a animação CSS de pulsar (pulse) como uma string
+            const pulseAnimation = `
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+    `;
+
             Swal.fire({
-                // Título e texto mais informativos
+                // O título está aqui, mas o logo será injetado acima dele via HTML
                 title: '🔒 Validando Acesso e Dispositivo',
-                html: 'Conectando a sua Wallet.',
 
-                // Design Simples (Dark Mode)
-                background: '#1b1b1b', // Fundo escuro
-                color: '#ffffff',     // Cor do texto
+                html: `
+            <style>
+                ${pulseAnimation}
+                .logo-pulse-container {
+                    text-align: center; /* Centraliza a imagem */
+                    margin-bottom: 20px; /* Espaço entre o logo e o título */
+                    width: 100%;
+                }
+                .bisq-logo-pulse {
+                    animation: pulse 1.5s infinite ease-in-out;
+                    display: inline-block; /* Permite a centralização com text-align: center */
+                }
+            </style>
+            
+            <div class="logo-pulse-container">
+                <img src="https://bisq.network/images/bisq-logo.svg" 
+                     class="bisq-logo-pulse" 
+                     alt="Logo Bisq" 
+                     style="width: 80px; height: 80px;"/>
+            </div>
 
-                // Configurações do Modal
+            <div style="font-size: 1rem; color: #aaa; margin-bottom: 15px; text-align: center;">
+                Conectando à sua Wallet e verificando a sincronização da rede.
+                <br>
+                Aguarde alguns instantes.
+            </div>
+        `,
+
+                background: '#1b1b1b',
+                color: '#ffffff',
                 allowOutsideClick: false,
-                didOpen: () => Swal.showLoading(),
+                showConfirmButton: false,
                 timer: 3000,
-                timerProgressBar: true
+                timerProgressBar: true,
+
+                didOpen: () => {
+                    Swal.showLoading();
+                    const progressBar = Swal.getTimerProgressBar();
+                    if (progressBar) {
+                        progressBar.style.backgroundColor = '#00ff00';
+                    }
+                }
             }).then(result => {
                 if (result.dismiss === Swal.DismissReason.timer) {
-
-                    // --- PASSO 2: Dispositivo Autenticado (Sucesso) ---
                     Swal.fire({
-                        // Ícone nativo 'success' do SweetAlert2
                         icon: 'success',
-
-                        // Cor do ícone (simulando neon ou destaque)
                         iconColor: '#00ff00',
-
-                        // Texto de Sucesso
-                        title: ' Dispositivo Autenticado',
-
-                        // Design Simples (Dark Mode)
+                        title: 'Dispositivo Autenticado',
+                        text: 'Sua carteira está sincronizada e pronta para uso.',
                         background: '#1b1b1b',
                         color: '#ffffff',
-
-                        // Configurações Finais
                         showConfirmButton: false,
                         timer: 1500
                     }).then(() => {
@@ -984,15 +1166,19 @@
             setInterval(carregarCarteira, 60000);
         });
 
-
+        // LÓGICA ORIGINAL DE CLIQUE NOS ITENS DE NAVEGAÇÃO
         const navItems = document.querySelectorAll('.nav-item');
         navItems.forEach(item => {
             item.addEventListener('click', () => {
                 navItems.forEach(i => i.classList.remove('active'));
                 item.classList.add('active');
+
+                // Se houver lógica de exibição de painel aqui, mantenha-a.
+                // Exemplo:
+                // if (item.id === 'btnTransfer') { /* mostrar painel de transferência */ }
             });
         });
-        navItems[1].classList.add('active');
+        navItems[1].classList.add('active'); 
     </script>
 </body>
 
