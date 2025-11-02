@@ -437,56 +437,6 @@
         .coin-valores .toggle-coin-icon {
             display: none !important;
         }
-
-        /* Estilo Essencial para o Overlay de Segurança */
-        #securityOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            /* Ocupa toda a altura da tela */
-            background: #111;
-            /* Fundo escuro */
-            z-index: 9999;
-            /* Fica acima de tudo */
-            display: flex;
-            /* Garante que os filhos sejam centralizados */
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-            text-align: center;
-            transition: opacity 0.3s ease-out;
-            /* Para a transição de saída */
-        }
-
-        /* Garante que o appContainer esteja inicialmente invisível */
-        #appContainer {
-            display: none;
-            /* Mantém a regra do seu HTML */
-        }
-
-        /* Estilos para o botão e ícone de biometria */
-        #securityOverlay i.bi-fingerprint {
-            color: #00e07f;
-            /* Sua cor neon-green */
-            filter: drop-shadow(0 0 10px rgba(0, 224, 127, 0.6));
-            margin-bottom: 20px;
-        }
-
-        #authButton {
-            background: #00e07f;
-            color: #111;
-            border: none;
-            padding: 10px 30px;
-            border-radius: 8px;
-            margin-top: 20px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(0, 224, 127, 0.5);
-        }
     </style>
 </head>
 
@@ -1210,7 +1160,7 @@
         }
         window.addEventListener('load', () => {
             exibirTotalMoedas();
-            protegerAcesso();
+            iniciarApp();
         });
         const navItems = document.querySelectorAll('.nav-item');
         navItems.forEach(item => {
@@ -1228,61 +1178,6 @@
             if (totalMoedasEl) {
                 totalMoedasEl.textContent = totalMoedas;
             }
-        }
-
-        async function protegerAcesso() {
-            const overlay = document.getElementById('securityOverlay');
-            const appContainer = document.getElementById('appContainer');
-            const authButton = document.getElementById('authButton');
-            const authMessage = document.getElementById('authMessage');
-            if (!window.PublicKeyCredential || !navigator.credentials.get) {
-                authMessage.textContent = 'Este dispositivo não suporta autenticação segura (WebAuthn).';
-                authButton.textContent = 'Acessar (Sem Biometria)';
-                authButton.onclick = liberarAcesso;
-                return;
-            }
-            overlay.style.display = 'flex';
-            appContainer.style.display = 'none';
-            authButton.textContent = 'Desbloquear Carteira';
-            authMessage.textContent = 'Toque para autenticar e desbloquear sua carteira.';
-            authButton.disabled = false;
-            authButton.style.opacity = '1';
-            const liberarAcesso = () => {
-                overlay.style.opacity = '0';
-                setTimeout(() => {
-                    overlay.style.display = 'none';
-                    appContainer.style.display = 'flex';
-                    appContainer.style.opacity = '1';
-                    iniciarApp();
-                }, 300);
-            };
-            const autenticarBiometria = async () => {
-                authMessage.textContent = 'Aguardando autenticação do dispositivo...';
-                authButton.disabled = true;
-                authButton.style.opacity = '0.7';
-                try {
-                    await navigator.credentials.get({
-                        publicKey: {
-                            challenge: new Uint8Array(32),
-                            timeout: 30000,
-                            userVerification: 'required'
-                        }
-                    });
-                    authMessage.textContent = 'Acesso liberado!';
-                    liberarAcesso();
-                } catch (e) {
-                    console.error('Falha na autenticação:', e);
-                    if (e.name === 'NotAllowedError' || e.name === 'AbortError') {
-                        authMessage.textContent = 'Autenticação cancelada. Tente novamente.';
-                    } else {
-                        authMessage.textContent = 'Autenticação falhou. Tente novamente.';
-                    }
-
-                    authButton.disabled = false;
-                    authButton.style.opacity = '1';
-                }
-            };
-            authButton.onclick = autenticarBiometria;
         }
     </script>
 </body>
