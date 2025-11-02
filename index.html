@@ -1160,7 +1160,7 @@
         }
         window.addEventListener('load', () => {
             exibirTotalMoedas();
-            iniciarApp();
+            protegerAcesso();
         });
         const navItems = document.querySelectorAll('.nav-item');
         navItems.forEach(item => {
@@ -1178,6 +1178,61 @@
             if (totalMoedasEl) {
                 totalMoedasEl.textContent = totalMoedas;
             }
+        }
+
+        async function protegerAcesso() {
+            const overlay = document.getElementById('securityOverlay');
+            const appContainer = document.getElementById('appContainer');
+            const authButton = document.getElementById('authButton');
+            const authMessage = document.getElementById('authMessage');
+            if (!window.PublicKeyCredential || !navigator.credentials.get) {
+                authMessage.textContent = 'Este dispositivo não suporta autenticação segura (WebAuthn).';
+                authButton.textContent = 'Acessar (Sem Biometria)';
+                authButton.onclick = liberarAcesso;
+                return;
+            }
+            overlay.style.display = 'flex';
+            appContainer.style.display = 'none';
+            authButton.textContent = 'Desbloquear Carteira';
+            authMessage.textContent = 'Toque para autenticar e desbloquear sua carteira.';
+            authButton.disabled = false;
+            authButton.style.opacity = '1';
+            const liberarAcesso = () => {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    appContainer.style.display = 'flex';
+                    appContainer.style.opacity = '1';
+                    iniciarApp();
+                }, 300);
+            };
+            const autenticarBiometria = async () => {
+                authMessage.textContent = 'Aguardando autenticação do dispositivo...';
+                authButton.disabled = true;
+                authButton.style.opacity = '0.7';
+                try {
+                    await navigator.credentials.get({
+                        publicKey: {
+                            challenge: new Uint8Array(32),
+                            timeout: 30000,
+                            userVerification: 'required'
+                        }
+                    });
+                    authMessage.textContent = 'Acesso liberado!';
+                    liberarAcesso();
+                } catch (e) {
+                    console.error('Falha na autenticação:', e);
+                    if (e.name === 'NotAllowedError' || e.name === 'AbortError') {
+                        authMessage.textContent = 'Autenticação cancelada. Tente novamente.';
+                    } else {
+                        authMessage.textContent = 'Autenticação falhou. Tente novamente.';
+                    }
+
+                    authButton.disabled = false;
+                    authButton.style.opacity = '1';
+                }
+            };
+            authButton.onclick = autenticarBiometria;
         }
     </script>
 </body>
