@@ -902,15 +902,15 @@
             <input id="swal-address" list="history" class="swal2-input"
                 placeholder="Ex: Endereço ${coinSymbol}" autocomplete="off"
                 style="border-radius: 10px;
-                        background: #111;
-                        border: 1px solid #333;
-                        color: #fff;
-                        width: 70%;
-                        height: 50px;
-                        overflow: hidden;
-                        scrollbar-width: none;
-                        -ms-overflow-style: none;
-                        text-align: center;">
+                       background: #111;
+                       border: 1px solid #333;
+                       color: #fff;
+                       width: 70%;
+                       height: 50px;
+                       overflow: hidden;
+                       scrollbar-width: none;
+                       -ms-overflow-style: none;
+                       text-align: center;">
             
             <datalist id="history">
                 ${history.map(a => `<option value="${a}">`).join('')}
@@ -952,15 +952,15 @@
             <input id="swal-input-amount" class="swal2-input" type="number"
                 placeholder="0.01" min="0.00000001" step="0.00000001"
                 style="border-radius: 10px;
-                        background: #111;
-                        border: 1px solid #333;
-                        color: #fff;
-                        width: 70%;
-                        height: 50px;
-                        overflow: hidden;
-                        scrollbar-width: none;
-                        -ms-overflow-style: none;
-                        text-align: center;">
+                       background: #111;
+                       border: 1px solid #333;
+                       color: #fff;
+                       width: 70%;
+                       height: 50px;
+                       overflow: hidden;
+                       scrollbar-width: none;
+                       -ms-overflow-style: none;
+                       text-align: center;">
             <div id="swal-equivalent"
                 style="color: #8ae2fc;font-size: .9rem;margin-top: 5px;">Equivalente: R$ 0,00</div>
             <div style="color: #fceb8a;font-size: .8rem;margin-top: 10px;">Saldo disponível: ${coin.quantidade.toFixed(8)} ${coinSymbol}</div>
@@ -998,27 +998,27 @@
             });
             if (!amount) return;
 
-            // **AQUI: Inicia o modal de autenticação antes de chamar a biometria**
-            const authModal = Swal.fire({
-                title: 'Autenticando Transferência',
-                html: 'Confirme a transação com a biometria do dispositivo.',
+            await Swal.fire({
+                title: 'Autenticando Ledger...',
+                html: 'Confirme em até <strong id="sec">30</strong> segundos.',
                 background: '#1b1b1b',
                 color: '#fff',
-                showConfirmButton: false,
+                timer: 30000,
+                timerProgressBar: true,
                 allowOutsideClick: false,
                 didOpen: () => {
                     Swal.showLoading();
-                    const container = Swal.getHtmlContainer();
-                    if (container) {
-                        container.style.paddingBottom = '30px'; // Ajuste de visual
-                    }
+                    let t = 30;
+                    const s = Swal.getHtmlContainer().querySelector('#sec');
+                    const iv = setInterval(() => { s.textContent = --t; }, 1000);
+                    Swal.willClose(() => clearInterval(iv));
                 }
             });
 
+            await new Promise(r => setTimeout(r, 50));
             let erro = null;
 
             try {
-                // **AQUI É ONDE A BIOMETRIA É CHAMADA (WebAuthn)**
                 await Promise.race([
                     navigator.credentials.get({
                         publicKey: { challenge: new Uint8Array(32), timeout: 30000, userVerification: 'required' }
@@ -1029,18 +1029,15 @@
                 erro = e;
             }
 
-            // Fecha o modal de "Autenticando Transferência"
-            Swal.close(authModal);
-
             if (erro) {
                 const isTimeout = erro.message === 'timeout';
                 return Swal.fire({
                     icon: 'error',
                     background: '#1b1b1b',
                     color: '#fff',
-                    title: 'Erro de Autenticação',
-                    text: isTimeout ? 'Tempo esgotado ou biometria não suportada.' : 'Autenticação não realizada. Tente novamente.',
-                    timer: 3000,
+                    title: 'Erro',
+                    text: isTimeout ? 'Tempo esgotado.' : 'Autenticação não realizada.',
+                    timer: 2000,
                     showConfirmButton: false
                 });
             }
@@ -1075,114 +1072,15 @@
             });
         }
 
-        // --- Nova Função para Autenticação Inicial ---
-
-        function liberarAcesso() {
-            const overlay = document.getElementById('biometric-overlay');
-            if (overlay) {
-                overlay.style.opacity = '0';
-                setTimeout(() => overlay.remove(), 500);
-            }
-            carregarCarteira(); // Inicia o carregamento real após o desbloqueio
-            setInterval(carregarCarteira, 60000);
-        }
-
-        async function protegerAcesso() {
-            if (!window.PublicKeyCredential || !navigator.credentials.get) {
-                // Se não houver suporte, libera o acesso imediatamente (ou insira outra lógica de login)
-                console.warn("WebAuthn (Biometria) não suportada. Liberando acesso.");
-                liberarAcesso();
-                return;
-            }
-
-            const pulseAnimation = `
-            @keyframes pulse {
-                0% { transform: scale(1); opacity: 0.8; }
-                50% { transform: scale(1.1); opacity: 1; }
-                100% { transform: scale(1); opacity: 0.8; }
-            }
-        `;
-
-            // 1. Cria o Overlay para Bloquear a Aplicação
-            const overlay = document.createElement('div');
-            overlay.id = 'biometric-overlay';
-            overlay.style.cssText = `
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #111; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 99999;
-            color: #fff; transition: opacity 0.5s;
-        `;
-
-            // 2. Cria os Elementos de Autenticação
-            const authIcon = document.createElement('span');
-            authIcon.className = 'material-icons-outlined';
-            authIcon.textContent = 'fingerprint';
-            authIcon.style.cssText = 'font-size: 80px; color: #00ff00; margin-bottom: 20px; animation: pulse 1.5s infinite;';
-
-            const authMessage = document.createElement('div');
-            authMessage.textContent = 'Toque para liberar o acesso com Biometria';
-            authMessage.style.cssText = 'font-size: 1.1rem; color: #aaa; margin-bottom: 30px;';
-
-            const authButton = document.createElement('button');
-            authButton.textContent = 'Autenticar';
-            authButton.style.cssText = 'padding: 15px 30px; border: none; border-radius: 10px; background: #00ff00; color: #111; font-size: 1rem; cursor: pointer; transition: background 0.3s;';
-            authButton.onmouseover = () => authButton.style.background = '#00cc00';
-            authButton.onmouseout = () => authButton.style.background = '#00ff00';
-
-            overlay.appendChild(authIcon);
-            overlay.appendChild(authMessage);
-            overlay.appendChild(authButton);
-            document.body.appendChild(overlay);
-
-            // Adiciona o estilo de animação
-            const style = document.createElement('style');
-            style.textContent = pulseAnimation;
-            document.head.appendChild(style);
-
-            // 3. Função de Autenticação
-            const autenticarBiometria = async () => {
-                authMessage.textContent = 'Aguardando biometria do dispositivo...';
-                authButton.disabled = true;
-                authButton.style.opacity = '0.7';
-
-                try {
-                    // **AQUI É A CHAMADA PRINCIPAL DA BIOMETRIA (WebAuthn)**
-                    await navigator.credentials.get({
-                        publicKey: {
-                            challenge: new Uint8Array(32),
-                            timeout: 30000,
-                            userVerification: 'required'
-                        }
-                    });
-
-                    // SUCESSO
-                    authIcon.textContent = 'lock_open';
-                    authIcon.style.color = '#00ff00';
-                    authIcon.style.animation = 'none';
-                    authMessage.textContent = 'Acesso liberado!';
-
-                    // Remove o overlay após um breve delay de sucesso
-                    setTimeout(liberarAcesso, 500);
-
-                } catch (e) {
-                    // FALHA (cancelamento, timeout, erro)
-                    console.error('Falha na autenticação:', e);
-                    authIcon.textContent = 'lock';
-                    authIcon.style.color = '#ff0000';
-                    authMessage.textContent = 'Falha na autenticação. Tente novamente.';
-                    authButton.disabled = false;
-                    authButton.style.opacity = '1';
-                    authIcon.style.animation = 'pulse 1.5s infinite';
-                }
-            };
-
-            authButton.onclick = autenticarBiometria;
-        }
-
-        // --- FIM da Função de Autenticação Inicial ---
-
-
         async function iniciarApp() {
+            const pulseAnimation = `
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+    `;
+
             const carregouSalvo = carregarCarteiraStorage();
 
             if (!carregouSalvo) {
@@ -1191,18 +1089,79 @@
 
             document.getElementById('appContainer').style.display = 'flex';
 
-            // Chamada de proteção de acesso
-            await protegerAcesso();
 
-            // Se `protegerAcesso` falhar ou liberar o acesso, o código continua em `liberarAcesso()`
-            // A lógica de carregamento e timer que estava aqui foi movida para `liberarAcesso()`
+            if (!carregouSalvo) {
+                await Swal.fire({
+                    title: 'Validando Acesso e Dispositivo',
+
+                    html: `
+                <style>
+                    ${pulseAnimation}
+                    .logo-pulse-container {
+                        text-align: center;
+                        margin-bottom: 20px;
+                        width: 100%;
+                    }
+                    .bisq-logo-pulse {
+                        animation: pulse 1.5s infinite ease-in-out;
+                        display: inline-block;
+                    }
+                </style>
+                
+                <div class="logo-pulse-container">
+                    <img src="https://bisq.network/images/bisq-logo.svg" 
+                        class="bisq-logo-pulse" 
+                        alt="Logo Bisq" 
+                        style="width: 80px; height: 80px;"/>
+                </div>
+
+                <div style="font-size: 1rem; color: #aaa; margin-bottom: 15px; text-align: center;">
+                    Conectando à sua Wallet e verificando a sincronização da rede...
+                    <br>
+                    Aguarde alguns instantes
+                </div>
+            `,
+
+                    background: '#1b1b1b',
+                    color: '#ffffff',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+
+                    didOpen: () => {
+                        const progressBar = Swal.getTimerProgressBar();
+                        if (progressBar) {
+                            progressBar.style.backgroundColor = '#00ff00';
+                        }
+                    }
+                }).then(result => {
+                    if (result.dismiss === Swal.DismissReason.timer) {
+                        Swal.fire({
+                            icon: 'success',
+                            iconColor: '#00ff00',
+                            title: 'Dispositivo Autenticado',
+                            text: 'Sua carteira está sincronizada e pronta para uso',
+                            background: '#1b1b1b',
+                            color: '#ffffff',
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(() => {
+                            Swal.close();
+                            carregarCarteira();
+                        });
+                    }
+                });
+            } else {
+                carregarCarteira();
+            }
+
+            setInterval(carregarCarteira, 60000);
         }
-
         window.addEventListener('load', () => {
             exibirTotalMoedas();
             iniciarApp();
         });
-
         const navItems = document.querySelectorAll('.nav-item');
         navItems.forEach(item => {
             item.addEventListener('click', () => {
